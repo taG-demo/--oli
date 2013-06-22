@@ -44,8 +44,8 @@ function texture( gl, path ){
         fShader = createShaderFromScriptElement(document, ctx, "2d-fragment-shader"),
         program = ctx.createProgram(),
         X       = window.innerWidth,
-        Y       = window.innerHeight,
-        tex1    = texture(ctx, "texture.jpg");
+        Y       = window.innerHeight;
+//        tex1    = texture(ctx, "texture.jpg");
 
     canvas.width  = X;
     canvas.height = Y;
