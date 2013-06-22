@@ -40,10 +40,10 @@ uniform vec2  u_resolution;
 void main(){
   vec2 p          =  gl_FragCoord.xy / u_resolution.xy;
 //  float theta     = atan( p.y, p.x );
-  float d0        = distance( vec2(0) , p);
-  float d1        = distance( vec2(1) , p);
-  float d2        = distance( vec2(0,1) , p);
-  float d3        = distance( vec2(1,0) , p);
+  float d0        = 1. / distance( vec2(0) , p)   +4.3 ;
+  float d1        = 1. / distance( vec2(1) , p)   +4.3;
+  float d2        = 1. / distance( vec2(0,1) , p) +4.3;
+  float d3        = 1. / distance( vec2(1,0) , p) +4.3;
 //  vec2 deltaP     = vec2(0.05) * u_center;
 //  vec2 uv         = vec2(p.x ,p.y);
 //  vec3 color      = ( 
@@ -53,16 +53,19 @@ void main(){
 //                    texture2D( u_sampler, uv + ( deltaP * vec2( 0 ,  1) ) ).xyz + 
 //                   texture2D( u_sampler, uv + ( deltaP * vec2( 0 , -1) ) ).xyz) / 5.0;
 //  vec3 grad       = vec3( min( (d * d) * 3.0, 1.0 ) );
-  float color      = (1.0 / d0) * (cos(u_t/400.0) +6.0)/256.0 +
-                     (1.0 / d1) * (cos(u_t/400.0) +6.0)/256.0 +
-                     (1.0 / d2) * (cos(u_t/400.0) +6.0)/256.0 +
-                     (1.0 / d3) * (cos(u_t/400.0) +6.0)/256.0 ;
+  float color      = dot( vec4(d1,d2,d3,d0), vec4( (cos(u_t/400.0) +6.0)/256.0 ) ) ;
   //vec3 color      = vec3(1.0, 0.1mod, 1.0) * d * 2.0 ;
-  if( p.y > sin(u_t/1000.) ) {
-    gl_FragColor    = vec4(  vec3(1.0, 0.1, 1.0) * color, 1.0);
+  if( p.y > ( sin( p.x + u_t/1000.)/2.)  && p.y < ( .1+  sin( p.x + u_t/1000.) )/2. ) {
+    gl_FragColor    = vec4(  vec3(1.0, 0.0, 1.0) * color, 1.0);
+  }
+  else if( p.y > sin(p.x + u_t/1000. + .1) && p.y < .1 + sin( p.x + u_t/1000. + .1) ) {
+    gl_FragColor    = vec4(  vec3(1.0, 0.0, 0.0) * color, 1.0);
+  }
+  else if( p.y > sin(p.x + u_t/1000. + .2) && p.y < .1 + sin(p.x + u_t/1000. + .2) ) {
+    gl_FragColor    = vec4(  vec3(0.0, 0.0, 1.0) * color, 1.0);
   }
   else {
-    gl_FragColor    = vec4(  vec3(1.0, 1.0, 0.1) * color, 1.0);
+    gl_FragColor    = vec4(  vec3(1.0, 1.0, 1.) * color, 1.0);
   }
 }
 </script>
