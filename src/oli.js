@@ -44,8 +44,8 @@ function texture( gl, path ){
         fShader = createShaderFromScriptElement(document, ctx, "2d-fragment-shader"),
         program = ctx.createProgram(),
         X       = window.innerWidth,
-        Y       = window.innerHeight;
-//        tex1    = texture(ctx, "texture.jpg");
+        Y       = window.innerHeight,
+        tex1    = texture(ctx, "texture2.png");
 
     canvas.width  = X;
     canvas.height = Y;
@@ -58,6 +58,7 @@ function texture( gl, path ){
     ctx.linkProgram(program);
 
     ctx.useProgram(program);
+    ctx.enable(ctx.BLEND);
 
     var posLoc    = ctx.getAttribLocation(program, "a_position"),
         buffer    = ctx.createBuffer(),
@@ -85,7 +86,7 @@ function texture( gl, path ){
 
 //    ctx.activeTexture( ctx.TEXTURE0 );
 //    ctx.bindTexture( ctx.TEXTURE_2D, tex1 );
-//    ctx.uniform1i( ctx.getUniformLocation(program, "u_sampler"), 0);
+    ctx.uniform1i( ctx.getUniformLocation(program, "u_sampler"), 0);
 
     //var pause = false;
     //document.addEventListener("click",function(){ pause = !pause;});

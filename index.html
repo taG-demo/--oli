@@ -35,7 +35,7 @@ uniform float u_t;
 varying vec2 v_textureCoord;
 
 uniform vec2  u_resolution;
-//uniform sampler2D u_sampler;
+uniform sampler2D u_sampler;
 
 float d(vec2 o, vec2 p, float t){
   vec2 f = vec2(sin(t/1200.)/5. +.3, cos(t/1200.)/5. +.3);
@@ -75,17 +75,20 @@ void main(){
     }
   }
 
-  if( mod(u_t, 300.) < 100. * cos(u_t / 10.) ){
-    vec2 cDamier = clamp(cos(p*100000.)*10., 0.2, .8) * 0.5;
-    c *=  (cDamier.x + cDamier.y);
+if( mod(u_t, 300.) < 100. * cos(u_t / 100.) ){
+    vec2 cDamier = clamp(cos(p*100000.)*10., 0.2, .8) * 0.7;
+    float th = cos(u_t / 1000.) * .3 ;
+    c *= (cDamier.x + cDamier.y) * 
+          (texture2D( u_sampler,
+              mat2( cos(th), sin(th), -sin(th), cos(th))  * p * vec2(1., -1.)  * 4. + vec2(0, cos(u_t/800.) ) ).xyz * 0.5) ;
+    gl_FragColor    = vec4(c , 1.0);
   }
   else {
     vec2 cDamier = clamp(cos(p*100000.)*10., 0.2, .22) ;
     c *=  (cDamier.x + cDamier.y);
-
+    gl_FragColor    = vec4(c , 1.0);
   }
 
-  gl_FragColor    = vec4(c , 1.0);
 
 }
 </script>
