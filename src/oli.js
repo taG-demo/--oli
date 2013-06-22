@@ -72,15 +72,16 @@ function texture( gl, path ){
     ctx.bufferData(
       ctx.ARRAY_BUFFER,
       new Float32Array([
-        -1, -1, 0, 
-        -1,  0, 0,
-        -1, -1, 0, 
-         0, -1, 0
+         1,  1,
+         1, -1,
+         -1, -1,
+        -1, 1,
+         1,  1
       ]),
       ctx.STATIC_DRAW
     );
 
-    ctx.vertexAttribPointer(posLoc, 1, ctx.FLOAT, false, 0, 0);
+    ctx.vertexAttribPointer(posLoc, 2, ctx.FLOAT, true, 0, 0);
 
 //    ctx.activeTexture( ctx.TEXTURE0 );
 //    ctx.bindTexture( ctx.TEXTURE_2D, tex1 );
@@ -88,15 +89,16 @@ function texture( gl, path ){
 
     //var pause = false;
     //document.addEventListener("click",function(){ pause = !pause;});
-    
+    ctx.clearColor(0.0, 0.0, 0.0, 1.0);
     requestAnimationFrame(function loop(time){
 //          var time = (new Date()).getTime();
 //          console.log(time);
           ctx.uniform1f(timeLoc, time);
-          ctx.drawArrays(ctx.TRIANGLES, 0, 6);
-
-        requestAnimationFrame(loop);
-    });
+//          ctx.drawArrays(ctx.LINE_STRIP, 0, 7);
+          ctx.clear(ctx.COLOR_BUFFER_BIT);
+          ctx.drawArrays(ctx.TRIANGLE_STRIP, 0, 5);
+        requestAnimationFrame(loop, container);
+    }, container);
 
     container.appendChild(canvas);
   })(document.getElementById("container"));
