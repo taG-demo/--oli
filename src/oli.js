@@ -89,13 +89,11 @@ function texture( gl, path ){
 
     //var pause = false;
     //document.addEventListener("click",function(){ pause = !pause;});
-    ctx.clearColor(0.0, 0.0, 0.0, 1.0);
     requestAnimationFrame(function loop(time){
 //          var time = (new Date()).getTime();
 //          console.log(time);
           ctx.uniform1f(timeLoc, time);
 //          ctx.drawArrays(ctx.LINE_STRIP, 0, 7);
-          ctx.clear(ctx.COLOR_BUFFER_BIT);
           ctx.drawArrays(ctx.TRIANGLE_STRIP, 0, 5);
         requestAnimationFrame(loop, container);
     }, container);
