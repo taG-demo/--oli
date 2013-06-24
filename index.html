@@ -42,8 +42,8 @@ const float nbDots       = 10.;
 
 
 float d(vec2 o, vec2 p, float t){
-  vec2 f = vec2(sin(t/1200.)/5. +.3, cos(t/1200.)/5. +.3);
-  vec2 z = vec2(1., 2.);
+  vec2 f = vec2(sin(t/1200.)/5. , cos(t/1200.)/5. );
+  vec2 z = vec2(2., 2.);
   return 1. / distance( o + z * f, p) +.3;
 }
 
@@ -53,7 +53,7 @@ void main(){
   float color = 0.;
   for(float i = 1.; i <= nbDots; i++){
     //dots[i] = d( vec2(0.6 - 0.1 * i, 0.1 * i), p, u_t * (1.1 * 0.5 * i) + 1000.*i);
-    color += d( vec2( 0.2 , -0.1), p, u_t * (1.1 - 0.5 * i) + 1000.*i) * 
+    color += d( vec2( 0.5 , 0.5), p, u_t * (1.1 - 0.5 * i) + 1000.*i) * 
              (cos(u_t/400.0) +6.0)/256.0 ;
   }
 //  float d0        = d(vec2(0.1), p, u_t + 1000.);
