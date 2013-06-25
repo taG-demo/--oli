@@ -108,14 +108,14 @@
 
 	  var filter = actx.createBiquadFilter();
 	  filter.type = 0;
-	  filter.Q.value = 10;
-	  filter.frequency.value = 1200;
+	  filter.Q.value = 4;
+	  filter.frequency.value = 2000;
 
 	var melEnv = Env(0.001, 0.08, 0.2);
 	melEnv.inp(melNode);
 	melEnv.outp(filter);
 
-	var hatEnv = Env(0.001, 0.08, 0.01);
+	var hatEnv = Env(0.001, 0.01, 0.03);
 	hatEnv.inp(melNode);
 	hatEnv.outp(filter);
 
@@ -124,12 +124,45 @@
 	delayNode2.connect(delayGain);
 	delayGain.connect(gainMaster);
 
-	var synEnv = Env(0.03, 0.1, 0.05);
+	var synEnv = Env(0.04, 0.1, 0.05);
 	synEnv.inp(synNode);
 	synEnv.inp(synNode2);
+
+function createSineWaveArray(durationSeconds, freqHz, amplitude, sampleRate)
+{
+    var length = timeToSampleFrame(durationSeconds, sampleRate);
+    var signal = new Float32Array(length);
+    var omega = 2 * Math.PI * freqHz / sampleRate;
+    var halfAmplitude = amplitude / 2;
+
+    for (var k = 0; k < length; ++k) {
+        signal[k] = halfAmplitude + halfAmplitude * Math.sin(omega * k);
+    }
+
+    return signal;
+}
+
+
+	var synFilter = actx.createBiquadFilter();
+	synFilter.type = 0;
+	synFilter.Q.value = 10;
+
+	var c = actx.currentTime;
+
+	synFilter.frequency.setValueAtTime(1800, c + n8);
+	synFilter.frequency.exponentialRampToValueAtTime(200, c + n8 + n8+ 0.1);
+	synFilter.frequency.setValueAtTime(1800, c + n8 + n8+ 0.2);
+	synFilter.frequency.exponentialRampToValueAtTime(200, c + n8 + n8+ 0.3);
+	synFilter.frequency.setValueAtTime(1800, c + n8 + n8+ 0.4);
+	synFilter.frequency.exponentialRampToValueAtTime(200, c + n8+ n8 + 0.5);
+	synFilter.frequency.setValueAtTime(700, c + n8+ n8 + 0.6);
+	synFilter.frequency.linearRampToValueAtTime(3000, c + n8 + n8+ 0.9);
+
 	var synGain = actx.createGain();
 	synGain.gain.value = 0.6;
-	synEnv.outp(synGain);
+
+	synEnv.outp(synFilter);
+	synFilter.connect(synGain);
 	synGain.connect(gainMaster);
 
 	hatEnv.outp(delayNode);
@@ -137,10 +170,10 @@
 
 	gainMaster.connect(actx.destination);
 
-	var c = actx.currentTime;
+
 
 	for (var i = 0; i < 24; i++) {
-		synEnv.fire(c + (1 + i * 4) * n8 + n32);
+		synEnv.fire(c + (1 + i * 4) * n8 - (n32 / 4));
 		hatEnv.fire(c + (1 + i * 4) * n8 + n32);
 
 		kickEnv.fire(c + (1 + i * 4) * n8);
