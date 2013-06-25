@@ -22,19 +22,36 @@ module.exports = function(grunt) {
       }
     },
     watch: {
-      files   : ['src/*.js', 'index.html'],
-      tasks   : ['concat', 'uglify'],
-      options : {
-        livereload:true 
+      assets : {
+        files : ['src/**/*.*'],
+        tasks : ['default']
+      },
+      html : {
+        files   : ['index.html'],
+        options : {
+          livereload : true 
+        }
       }
-    }
+    },
+    assemble: {
+        options: {
+          partials : ['src/**/*.*', 'build/*.js'],
+          dev: true,
+          prod: false
+        },
+        files: {
+          src   : ['src/templates/index.hbs'],
+          dest  : 'index.html' 
+        }
+      }
   });
 
   // Load the plugin that provides the "uglify" task.
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-concat');
+  grunt.loadNpmTasks('assemble');
 
   // Default task(s).
-  grunt.registerTask('default', ['uglify']);
+  grunt.registerTask('default', ['concat', 'uglify', 'assemble']);
 };

@@ -1,0 +1,26 @@
+<html>
+<head>
+<style type="text/css">
+*{margin:0; padding:0; font-family:helvetica, arial, sans-serif}
+body{position:relative}
+</style>
+</head>
+<body>
+
+<div id="container">
+</div>
+
+<script id="2d-vertex-shader" type="x-shader/x-vertex">
+{{include 'main.vert'}}
+</script>
+
+<script id="2d-fragment-shader" type="x-shader/x-fragment">
+{{include 'main.frag'}}
+</script>
+<script type="text/javascript">
+{{include 'oli.min.js'}}
+</script>
+
+</body>
+
+</html>

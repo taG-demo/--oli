@@ -1,31 +1,3 @@
-<html>
-<head>
-<style type="text/css">
-*{margin:0; padding:0; font-family:helvetica, arial, sans-serif}
-body{position:relative}
-</style>
-</head>
-<body>
-
-<div id="container">
-</div>
-
-<script id="2d-vertex-shader" type="x-shader/x-vertex">
-precision mediump float;
-attribute vec2 a_position;
-
-varying vec2 v_textureCoord;
-
-uniform float u_t;
-
-void main(){
-  gl_Position = vec4(a_position , 0, 1);   // + vec4( cos(u_t / 1000.0), sin(u_t / 1000.0),0, 0 );
-  v_textureCoord = a_position;
-}
-
-</script>
-
-<script id="2d-fragment-shader" type="x-shader/x-fragment">
 precision mediump float;
 
 //uniform vec2  u_center;
@@ -96,13 +68,3 @@ void main(){
   gl_FragColor    = vec4(c , 1.0);
   //    }
 }
-
-</script>
-<script type="text/javascript">
-/*! oli 2013-06-25 */
-function createShaderFromScriptElement(a,b,c){var d=a.getElementById(c),e=d.text,f=function(a,b){return"x-shader/x-vertex"===b?a.VERTEX_SHADER:"x-shader/x-fragment"===b?a.FRAGMENT_SHADER:void 0}(b,d.type),g=b.createShader(f);if(b.shaderSource(g,e),b.compileShader(g),!b.getShaderParameter(g,b.COMPILE_STATUS))throw console.log("shader "+g+" failed with error : "+b.getShaderInfoLog(g)),new Error;return g}function texture(a,b){var c=a.createTexture(),d=new Image;return d.onload=function(){a.bindTexture(a.TEXTURE_2D,c),a.texImage2D(a.TEXTURE_2D,0,a.RGBA,a.RGBA,a.UNSIGNED_BYTE,d),a.texParameteri(a.TEXTURE_2D,a.TEXTURE_MAG_FILTER,a.LINEAR),a.texParameteri(a.TEXTURE_2D,a.TEXTURE_MIN_FILTER,a.LINEAR_MIPMAP_NEAREST),a.generateMipmap(a.TEXTURE_2D)},d.src=b,c}!function(a){var b=document.createElement("canvas"),c=b.getContext("experimental-webgl"),d=createShaderFromScriptElement(document,c,"2d-vertex-shader"),e=createShaderFromScriptElement(document,c,"2d-fragment-shader"),f=c.createProgram(),g=window.innerWidth,h=window.innerHeight;texture(c,"texture2.png"),b.width=g,b.height=h,c.viewport(0,0,g,h),c.attachShader(f,d),c.attachShader(f,e),c.linkProgram(f),c.useProgram(f),c.enable(c.BLEND);var i=c.getAttribLocation(f,"a_position"),j=c.createBuffer(),k=c.getUniformLocation(f,"u_resolution"),l=c.getUniformLocation(f,"u_t");c.uniform2f(k,g,h),c.enableVertexAttribArray(i),c.bindBuffer(c.ARRAY_BUFFER,j),c.bufferData(c.ARRAY_BUFFER,new Float32Array([1,1,1,-1,-1,-1,-1,1,1,1]),c.STATIC_DRAW),c.vertexAttribPointer(i,2,c.FLOAT,!0,0,0),c.uniform1i(c.getUniformLocation(f,"u_sampler"),0),requestAnimationFrame(function m(b){c.uniform1f(l,b),c.drawArrays(c.TRIANGLE_STRIP,0,5),requestAnimationFrame(m,a)},a),a.appendChild(b)}(document.getElementById("container"));
-</script>
-
-</body>
-
-</html>
