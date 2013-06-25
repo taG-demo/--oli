@@ -149,14 +149,18 @@ function createSineWaveArray(durationSeconds, freqHz, amplitude, sampleRate)
 
 	var c = actx.currentTime;
 
-	synFilter.frequency.setValueAtTime(1800, c + n8);
-	synFilter.frequency.exponentialRampToValueAtTime(200, c + n8 + n8+ 0.1);
-	synFilter.frequency.setValueAtTime(1800, c + n8 + n8+ 0.2);
-	synFilter.frequency.exponentialRampToValueAtTime(200, c + n8 + n8+ 0.3);
-	synFilter.frequency.setValueAtTime(1800, c + n8 + n8+ 0.4);
-	synFilter.frequency.exponentialRampToValueAtTime(200, c + n8+ n8 + 0.5);
-	synFilter.frequency.setValueAtTime(700, c + n8+ n8 + 0.6);
-	synFilter.frequency.linearRampToValueAtTime(3000, c + n8 + n8+ 0.9);
+	function addWah(off) {
+		synFilter.frequency.setValueAtTime(1800, off + n8);
+		synFilter.frequency.exponentialRampToValueAtTime(200, off + n8 + n8 + 0.1);
+		synFilter.frequency.setValueAtTime(1800, off + n8 + n8+ 0.2);
+		synFilter.frequency.exponentialRampToValueAtTime(200, off + n8 + n8 + 0.3);
+		synFilter.frequency.setValueAtTime(1800, off + n8 + n8+ 0.4);
+		synFilter.frequency.exponentialRampToValueAtTime(200, off + n8+ n8 + 0.5);
+		synFilter.frequency.setValueAtTime(700, off + n8+ n8 + 0.6);
+		synFilter.frequency.exponentialRampToValueAtTime(1300, off + n8 + n8+ 0.9);
+	}
+
+
 
 	var synGain = actx.createGain();
 	synGain.gain.value = 0.6;
@@ -173,7 +177,10 @@ function createSineWaveArray(durationSeconds, freqHz, amplitude, sampleRate)
 
 
 	for (var i = 0; i < 24; i++) {
-		synEnv.fire(c + (1 + i * 4) * n8 - (n32 / 4));
+		addWah(c + (i * n8 * 4));
+		//addWah(c + (i * n8 * 4) + (n8 + n8));
+
+		synEnv.fire(c + (1 + i * 4) * n8);
 		hatEnv.fire(c + (1 + i * 4) * n8 + n32);
 
 		kickEnv.fire(c + (1 + i * 4) * n8);
