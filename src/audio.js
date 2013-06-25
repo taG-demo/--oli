@@ -71,11 +71,11 @@
 	melNode.loop = true;
 	melNode.start(0);
 
-	var i = "";
-	for(var t in actx) {
-		i+= t + ":" + actx[t] + "<Br/>";
-	}
-	document.body.innerHTML = i;
+	// var i = "";
+	// for(var t in actx) {
+	// 	i+= t + ":" + actx[t] + "<Br/>";
+	// }
+	// document.body.innerHTML = i;
 
 	var gainMaster = actx.createGain();
 	gainMaster.gain.value = 2.5;
