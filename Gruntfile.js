@@ -27,9 +27,9 @@ module.exports = function(grunt) {
         tasks : ['default']
       },
       html : {
-        files   : ['index.html'],
+        files   : ['index.html', 'src/audio.js'],
         options : {
-          livereload : true 
+          livereload : true
         }
       }
     },
@@ -41,7 +41,7 @@ module.exports = function(grunt) {
         },
         files: {
           src   : ['src/templates/index.hbs'],
-          dest  : 'index.html' 
+          dest  : 'index.html'
         }
       }
   });

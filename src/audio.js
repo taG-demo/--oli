@@ -32,13 +32,27 @@
 
 	var sfreq = 60,
 		freqDrop = (sfreq - 40) / kickData.length;
+
 	for (var i = 0; i < kickData.length; ++i) {
-		kickData[i] = Math.sin( i / (sr / (sfreq * 2 * Math.PI)));
+		kickData[i] = Math.sin(i / (sr / (sfreq * 2 * Math.PI)));
 		sfreq -= freqDrop;
 	}
 
 	for (i = 0; i < melData.length; i++) {
 		melData[i] = (Math.random() * 2 - 1) / 2;
+	}
+
+	/* Synth */
+	var synLen = (n8 * 4) * sr,
+		synBuf = actx.createBuffer(1, synLen, sr),
+		synBuf2 = actx.createBuffer(1, synLen, sr),
+		synData = synBuf.getChannelData(0),
+		synData2 = synBuf2.getChannelData(0),
+		synNode;
+
+	for (i = 0; i < synData.length; i++) {
+		synData[i] = Math.sin(i / (sr / (40.15 * 2 * Math.PI))) > 0 ? 0.5 : -0.5;
+		synData2[i] = Math.sin(i / (sr / (39.85 * 2 * Math.PI))) > 0 ? 0.5 : -0.5;
 	}
 
 	var Env = function (a, d, r) {
@@ -56,7 +70,7 @@
 			},
 			outp: function(dest) {
  				node.connect(dest);
-			},
+			}
 		}
 	};
 
@@ -65,11 +79,19 @@
 	kickNode.loop = true;
 	kickNode.start(0);
 
-
 	melNode = actx.createBufferSource()
 	melNode.buffer = melBuf;
 	melNode.loop = true;
 	melNode.start(0);
+
+	synNode = actx.createBufferSource();
+	synNode.buffer = synBuf;
+	synNode.loop = true;
+	synNode.start(0);
+	synNode2 = actx.createBufferSource();
+	synNode2.buffer = synBuf2;
+	synNode2.loop = true;
+	synNode2.start(0);
 
 	// var i = "";
 	// for(var t in actx) {
@@ -93,13 +115,22 @@
 	melEnv.inp(melNode);
 	melEnv.outp(filter);
 
-	var hatEnv = Env(0.001, 0.003, 0.05);
+	var hatEnv = Env(0.001, 0.08, 0.01);
 	hatEnv.inp(melNode);
 	hatEnv.outp(filter);
+
 
 	delayNode.connect(delayNode2);
 	delayNode2.connect(delayGain);
 	delayGain.connect(gainMaster);
+
+	var synEnv = Env(0.03, 0.1, 0.05);
+	synEnv.inp(synNode);
+	synEnv.inp(synNode2);
+	var synGain = actx.createGain();
+	synGain.gain.value = 0.6;
+	synEnv.outp(synGain);
+	synGain.connect(gainMaster);
 
 	hatEnv.outp(delayNode);
 	filter.connect(gainMaster);
@@ -108,7 +139,8 @@
 
 	var c = actx.currentTime;
 
-	for (var i = 0; i < 8; i++) {
+	for (var i = 0; i < 24; i++) {
+		synEnv.fire(c + (1 + i * 4) * n8 + n32);
 		hatEnv.fire(c + (1 + i * 4) * n8 + n32);
 
 		kickEnv.fire(c + (1 + i * 4) * n8);
