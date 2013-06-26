@@ -5,10 +5,11 @@ precision mediump float;
 //uniform float u_radius;
 uniform float u_t;
 
+uniform float u_radius;
 uniform vec2  u_resolution;
 uniform sampler2D u_sampler;
 
-const float nbDots       = 10.;
+const float nbDots       = 30.;
 
 float d(vec2 o, vec2 p, float t){
   float r = sin(t / 12000.)  ;
@@ -19,13 +20,15 @@ float d(vec2 o, vec2 p, float t){
 
 void main(){
   vec2 p          =  gl_FragCoord.xy / u_resolution.xy;
-  //float dots[nbDots];// = float(1., 3.,4.,5., .4);
   float color = 0.;
   for(float i = 0.; i < nbDots; i++){
-    //dots[i] = d( vec2(0.6 - 0.1 * i, 0.1 * i), p, u_t * (1.1 * 0.5 * i) + 1000.*i);
-    //position of the point
+    //position of the point/lights
     color += d( vec2( 0.5 , 0.5), p, u_t * (1.5) + 1000.*i + 32000.) *  
-      (cos(u_t/400.0) +6.0)/256.0 ; // intensity of the glow
+      // intensity of the glow
+      (cos(u_t/400.0) +6.0)/256.0 *
+      //are they on? // Add some light over time
+      min((max(u_t,1100. * i)-1100. * i),1.)
+      ; 
   }
   //  float d0        = d(vec2(0.1), p, u_t + 1000.);
   //  float d1        = d(vec2(0.2,0.2), p, u_t * 0.95 + 4000.); //1. / distance( vec2(1) , p)   +4.3;
