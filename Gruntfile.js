@@ -27,7 +27,7 @@ module.exports = function(grunt) {
         tasks : ['default']
       },
       html : {
-        files   : ['index.html', 'src/audio.js'],
+        files   : ['index.html', 'src/js/audio.js'],
         options : {
           livereload : true
         }
