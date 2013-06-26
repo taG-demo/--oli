@@ -27,17 +27,22 @@ actx = new actx();
 
 		delayNode = actx.createDelay(),
 		delayNode2 = actx.createDelay(),
+		delayNode3 = actx.createDelay(),
 		delayGain = actx.createGain();
 
 	// Hi-hat delay
 	delayNode.delayTime.value = n8;
-	delayNode2.delayTime.value = n8 + n16;
-	delayGain.gain.value = 0.1;
+	delayNode2.delayTime.value = n8 + n8 + n16;
+	delayNode3.delayTime.value = n32 * 0.75;
+	delayGain.gain.value = 0.4;
+
+
 
 	// Sine wave generator
-	var sfreq = 60,
+	var i, j,
+		sfreq = 60,
 		freqDrop = (sfreq - 40) / kickData.length;
-	for (var i = 0; i < kickData.length; ++i) {
+	for (i = 0; i < kickData.length; ++i) {
 		kickData[i] = Math.sin(i / (sr / (sfreq * 2 * Math.PI)));
 		sfreq -= freqDrop;
 	}
@@ -51,14 +56,26 @@ actx = new actx();
 	var synLen = (n4 * 8) * sr,
 		synBuf = actx.createBuffer(1, synLen, sr),
 		synBuf2 = actx.createBuffer(1, synLen, sr),
+		synBuf3 = actx.createBuffer(1, synLen, sr),
 		synData = synBuf.getChannelData(0),
 		synData2 = synBuf2.getChannelData(0);
+		synData3 = synBuf3.getChannelData(0);
 
 	// Square wave generator
 	var synNote = 47;
-	for (i = 0; i < synData.length; i++) {
-		synData[i] = Math.sin(i / (sr / ((synNote + 0.15) * 2 * Math.PI))) > 0 ? 1 : -1;
-		synData2[i] = Math.sin(i / (sr / (((synNote * 1 + (7 * Math.pow(1/12, 2))) - 0.15) * 2 * Math.PI))) > 0 ? 1 : -1;
+	for (i = 0, j = synData.length; i < j; i++) {
+
+		var xxx = i < j / 2 ? 3.72 : 2.78 *2
+		synData[i] = Math.sin(i / (sr / ((synNote + 0.25) * xxx * Math.PI))) > 0 ? 1 : -1;
+		synData2[i] = Math.sin(i / (sr / ((synNote - 0.25) * xxx * Math.PI))) > 0 ? 1 : -1;
+
+		// -28, +28, 55
+		var freq,
+			step = 111.5 + [-56, -28, 0, +28, 0, 55, -56, +28, 0, -28, 0, +28, 0, 55, -56, -56][i / (j / 16) | 0];
+
+		freq = sr / (step * 2 * Math.PI);
+		synData3[i] = (((i % freq) / (freq / 2)) - 1) * 0.3;
+
 	}
 
 	var Env = function (a, d, r) {
@@ -77,6 +94,9 @@ actx = new actx();
 			},
 			outp: function(dest) {
  				node.connect(dest);
+			},
+			stop: function(off) {
+				node.gain.setValueAtTime(0, off);
 			}
 		}
 	};
@@ -92,7 +112,8 @@ actx = new actx();
 	var kickNode = createNode(kickBuffer),
 		snareNode = createNode(snareBuf),
 		synNode = createNode(synBuf),
-		synNode2 = createNode(synBuf2);
+		synNode2 = createNode(synBuf2),
+		synNode3 = createNode(synBuf3);
 
 	// var i = "";
 	// for(var t in actx) {
@@ -110,7 +131,7 @@ actx = new actx();
 	var hihatFilter = actx.createBiquadFilter();
 	hihatFilter.type = 0;
 	hihatFilter.Q.value = 4;
-	hihatFilter.frequency.value = 2200;
+	hihatFilter.frequency.value = 2000;
 
 	var snareEnv = Env(0.001, 0.08, 0.2);
 	snareEnv.inp(snareNode);
@@ -122,15 +143,20 @@ actx = new actx();
 
 	delayNode.connect(delayNode2);
 	delayNode2.connect(delayGain);
+
 	delayGain.connect(gainMaster);
 
 	var synEnv = Env(0.02, 0.6, 0.05);
 	synEnv.inp(synNode);
 	synEnv.inp(synNode2);
 
+	var syn2Env = Env(0.02, 0.6, 0.05);
+	syn2Env.inp(synNode3);
+
 	var synFilter = actx.createBiquadFilter();
 	synFilter.type = 0;
 	synFilter.Q.value = 10;
+	synFilter.frequency.value = 700;
 
 	var c = actx.currentTime;
 
@@ -138,7 +164,7 @@ actx = new actx();
 		var freq = synFilter.frequency;
 		var lastBeat = off,
 			low = 200,
-			hi = 5000;
+			hi = 2000;
 		freq.setValueAtTime(hi, lastBeat);
 		freq.linearRampToValueAtTime(low, lastBeat + (n8 * 1));
 		freq.setValueAtTime(hi, lastBeat + (n8 * 2));
@@ -158,10 +184,28 @@ actx = new actx();
 	}
 
 	var synGain = actx.createGain();
-	synGain.gain.value = 0.4;
+	synGain.gain.value = 0.3;
 
 	synEnv.outp(synFilter);
 	synFilter.connect(synGain);
+
+	//var melFilter = actx.
+
+
+	var melFilter = actx.createBiquadFilter();
+	melFilter.type = 0;
+	melFilter.Q.value = 1;
+	melFilter.frequency.value = 1300;
+
+	//syn2Env.outp(melFilter);
+	//syn2Env.outp(delayNode3);
+	delayNode3.connect(melFilter);
+	syn2Env.outp(melFilter);
+	syn2Env.outp(delayNode3);
+
+	melFilter.connect(delayNode);
+	melFilter.connect(gainMaster);
+
 	//synGain.connect(delayNode);
 	synGain.connect(gainMaster);
 
@@ -181,17 +225,30 @@ actx = new actx();
 			j % 2 == 1 && kickEnv.fire(c + ((j+1) + i * 4) * n4);
 		}
 
-		// Wahhhh filter
-		if (i > 3 && i % 2 === 0) {
+		//Wahhhh filter
+		if (i > 11){
 			addWah(c + beat[0])
 			addWah(c + beat[2]);
-			addWah(c + beat[3] + n8);
+			//addWah(c + beat[3] + n8);
 		};
 
 		// Synth
-		synEnv.fire(c + beat[0]);
-		synEnv.fire(c + beat[2]);
-		synEnv.fire(c + beat[3] + n8);
+		if(i > 3) {
+			synEnv.fire(c + beat[0]);
+
+			// Double pluckin'
+			if (i > 11){
+				synEnv.fire(c + beat[2]);
+				synEnv.fire(c + beat[3] + n8);
+			}
+		}
+
+		if(i < 11 || i > 19) {
+			syn2Env.fire(c + beat[0]);
+			syn2Env.fire(c + beat[2]);
+		} else {
+			syn2Env.stop(beat[0]);
+		}
 
 
 		// Hats n snare
