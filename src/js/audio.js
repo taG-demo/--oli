@@ -146,7 +146,7 @@ actx = new actx();
 
 	delayGain.connect(gainMaster);
 
-	var synEnv = Env(0.02, 0.6, 0.05);
+	var synEnv = Env(0.045, 0.5, 0.05);
 	synEnv.inp(synNode);
 	synEnv.inp(synNode2);
 
@@ -194,13 +194,29 @@ actx = new actx();
 
 	var melFilter = actx.createBiquadFilter();
 	melFilter.type = 0;
-	melFilter.Q.value = 1;
-	melFilter.frequency.value = 1300;
+	melFilter.Q.value = 5;
+	melFilter.frequency.value = 1700;
+
+
+	// var testvib = actx.createJavaScriptNode(4096 * 4, 1, 1);
+	// var cc = 0,
+	// 	v = 0.5,
+	// 	s = 1.0;
+	// testvib.onaudioprocess = function(ev) {
+ //        var inp = ev.inputBuffer.getChannelData(0);
+ //        var out = ev.outputBuffer.getChannelData(0);
+
+ //        for (var i = 0; i < inp.length; i++) {
+ //            out[i] = inp[i] * (1+Math.sin(cc*s*0.001)*v);
+ //            cc++;
+ //        }
+ //    }
 
 	//syn2Env.outp(melFilter);
 	//syn2Env.outp(delayNode3);
 	delayNode3.connect(melFilter);
 	syn2Env.outp(melFilter);
+	//testvib.connect(melFilter);
 	syn2Env.outp(delayNode3);
 
 	melFilter.connect(delayNode);
@@ -245,7 +261,6 @@ actx = new actx();
 
 		if(i < 11 || i > 19) {
 			syn2Env.fire(c + beat[0]);
-			syn2Env.fire(c + beat[2]);
 		} else {
 			syn2Env.stop(beat[0]);
 		}
