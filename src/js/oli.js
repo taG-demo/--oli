@@ -62,9 +62,9 @@ function texture( gl, path ){
 
     var posLoc    = ctx.getAttribLocation(program, "a_position"),
         buffer    = ctx.createBuffer(),
-//        centerLoc = ctx.getUniformLocation(program, "u_center"),
+        stepLoc   = ctx.getUniformLocation(program, "u_step"),
         resLoc    = ctx.getUniformLocation(program, "u_resolution"),
-        timeLoc = ctx.getUniformLocation(program, "u_t"),
+        timeLoc   = ctx.getUniformLocation(program, "u_t"),
         REZ       = ctx.uniform2f(resLoc, X, Y);
 
     ctx.enableVertexAttribArray(posLoc);
@@ -91,13 +91,13 @@ function texture( gl, path ){
     //var pause = false;
     //document.addEventListener("click",function(){ pause = !pause;});
     requestAnimationFrame(function loop(time){
-//          var time = (new Date()).getTime();
-//          console.log(time);
           ctx.uniform1f(timeLoc, time);
-//          ctx.drawArrays(ctx.LINE_STRIP, 0, 7);
+          ctx.uniform1i(stepLoc, Math.floor(time/10000));
           ctx.drawArrays(ctx.TRIANGLE_STRIP, 0, 5);
         requestAnimationFrame(loop, container);
     }, container);
+
+
 
     container.appendChild(canvas);
   })(document.getElementById("container"));

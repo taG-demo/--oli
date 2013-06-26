@@ -5,7 +5,9 @@ precision mediump float;
 //uniform float u_radius;
 uniform float u_t;
 
-uniform float u_radius;
+//indicates the step on which the scene is
+uniform int u_step;
+
 uniform vec2  u_resolution;
 uniform sampler2D u_sampler;
 
@@ -55,19 +57,18 @@ void main(){
     }
   }
 
-  //  if( mod(u_t, 300.) < 100. * cos(u_t / 100.) ){
-  //  vec2 cDamier = clamp( cos(p*1000.)*10. , 0.2, .21) ;
-  //  float th = cos(u_t / 1000.) * 1.3 ;
-  //  float zoom = 4. +  ( cos(u_t / 1000.) + 1.) * 5.;
-  //  //c = 
-  //  gl_FragColor = vec4( c * (cDamier.x + cDamier.y)  ,  1.9- 
-  //        (texture2D( u_sampler, mat2( cos(th), sin(th), -sin(th), cos(th))  * p * vec2(1., -1.)  * zoom + vec2(0, cos(u_t/800.) ) )).x  );
+  if( u_step > 0 && mod(u_t, 300.) < 100. * cos(u_t / 100.) ){
+      vec2 cDamier = clamp( cos(p*1000.)*10. , 0.2, .21) ;
+      float th = cos(u_t / 1000.) * 1.3 ;
+      float zoom = 4. +  ( cos(u_t / 1000.) + 1.) * 5.;
+      //c = 
+      gl_FragColor = vec4( c * (cDamier.x + cDamier.y)  ,  1.9- 
+            (texture2D( u_sampler, mat2( cos(th), sin(th), -sin(th), cos(th))  * p * vec2(1., -1.)  * zoom + vec2(0, cos(u_t/800.) ) )).x  );
 
-  //      gl_FragColor    = vec4(c , 1.0);
-  //   }
-  //    else {
+   }
+        else {
   vec2 cDamier = clamp( cos(p*1000.)*10. , 0.2, .21) ;
   c *=  (cDamier.x + cDamier.y);
   gl_FragColor    = vec4(c , 1.0);
-  //    }
+      }
 }
