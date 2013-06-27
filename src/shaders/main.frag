@@ -8,6 +8,9 @@ uniform float u_t;
 //indicates the step on which the scene is
 uniform int u_step;
 
+uniform float u_dotsVisible;
+uniform float u_timeIntensity;
+
 uniform vec2  u_resolution;
 uniform sampler2D u_sampler;
 
@@ -27,10 +30,10 @@ void main(){
     //position of the point/lights
     color += d( vec2( 0.5 , 0.5), p, u_t * (1.5) + 1000.*i + 32000.) *  
       // intensity of the glow
-      (cos(u_t/400.0) +6.0)/256.0 *
+      //(cos(u_t/400.0) +6.0)/256.0 *
+      ( 0.05 + ( cos(u_timeIntensity * 5.) / ((u_timeIntensity * u_timeIntensity)) ) * .0001) *
       //are they on? // Add some light over time
-      min((max(u_t,1100. * i)-1100. * i),1.)
-      ; 
+      min( ( max(u_dotsVisible, i ) - i  ),1.) ; 
   }
   //  float d0        = d(vec2(0.1), p, u_t + 1000.);
   //  float d1        = d(vec2(0.2,0.2), p, u_t * 0.95 + 4000.); //1. / distance( vec2(1) , p)   +4.3;

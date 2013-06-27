@@ -65,6 +65,8 @@ function texture( gl, path ){
         stepLoc   = ctx.getUniformLocation(program, "u_step"),
         resLoc    = ctx.getUniformLocation(program, "u_resolution"),
         timeLoc   = ctx.getUniformLocation(program, "u_t"),
+        tIntensLoc= ctx.getUniformLocation(program, "u_timeIntensity"),
+        dotsLoc   = ctx.getUniformLocation(program, "u_dotsVisible"),
         REZ       = ctx.uniform2f(resLoc, X, Y);
 
     ctx.enableVertexAttribArray(posLoc);
@@ -90,17 +92,24 @@ function texture( gl, path ){
 
     //var pause = false;
     //document.addEventListener("click",function(){ pause = !pause;});
+    var tIntensity = 0,
+        pos = 0;
 
     requestAnimationFrame(function loop(time){
-      var seqTime = actx.currentTime;
-      bar = seqTime / (n4 * 4) | 0;
-      if (bar != lastBar) {
-        console.log(bar);
-      }
-      lastBar = bar;
+          var seqTime = actx.currentTime;
+          var bar = seqTime / (n4 * 4) | 0;
+          if (bar != lastBar) {
+            console.log(bar, pos);
+            pos = seqTime;
+            ctx.uniform1f(dotsLoc, bar);
+            lastBar = bar;
+          }
+          
+          tIntensity = (seqTime - pos);
 
-          ctx.uniform1f(timeLoc, time);
+          ctx.uniform1f(timeLoc, seqTime * 100);
           ctx.uniform1i(stepLoc, Math.floor(time/10000));
+          ctx.uniform1f(tIntensLoc, tIntensity);
           ctx.drawArrays(ctx.TRIANGLE_STRIP, 0, 5);
         requestAnimationFrame(loop, container);
     }, container);
