@@ -90,7 +90,15 @@ function texture( gl, path ){
 
     //var pause = false;
     //document.addEventListener("click",function(){ pause = !pause;});
+
     requestAnimationFrame(function loop(time){
+      var seqTime = actx.currentTime;
+      bar = seqTime / (n4 * 4) | 0;
+      if (bar != lastBar) {
+        console.log(bar);
+      }
+      lastBar = bar;
+
           ctx.uniform1f(timeLoc, time);
           ctx.uniform1i(stepLoc, Math.floor(time/10000));
           ctx.drawArrays(ctx.TRIANGLE_STRIP, 0, 5);
