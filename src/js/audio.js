@@ -1,7 +1,10 @@
-var tempo = 80,
+ var tempo = 80,
   n4 = 60 / tempo,
   lastBar = -1,
   bar = 0;
+
+
+  //http://youtu.be/qjx2IArwz1Q?t=25m31s
 
 var actx = window.AudioContext || window.webkitAudioContext;
 if (!actx) {
@@ -62,16 +65,33 @@ actx = new actx();
 		synData3 = synBuf3.getChannelData(0);
 
 	// Square wave generator
-	var synNote = 47;
+	var synNote = 47,
+		steps = [];
+
+
+	// Magic number...
+		// 115.5 = F4.
+		//   -56 = F3
+		//   -28 = C4 .... -23 = C# ...-18/-19 = D
+		//	  28 = A4
+		//    55 = C5
+
+	for (i = 0; i < 16; i++) {
+		steps[i] = (111.5 + ([-111.5, -56, -28, 0, +28, +55][Math.random() * 6 | 0]));
+	}
+	console.log(steps.map(function(n){return n === 0 ? "." : n - 111.5}));
+
 	for (i = 0, j = synData.length; i < j; i++) {
 
-		var xxx = i < j / 2 ? 3.72 : 2.78 *2
+		var xxx = i < j / 2 ? 3.72 : 2.78;
+
 		synData[i] = Math.sin(i / (sr / ((synNote + 0.25) * xxx * Math.PI))) > 0 ? 1 : -1;
 		synData2[i] = Math.sin(i / (sr / ((synNote - 0.25) * xxx * Math.PI))) > 0 ? 1 : -1;
 
 		// -28, +28, 55
-		var freq,
-			step = 111.5 + [-56, -28, 0, +28, 0, 55, -56, +28, 0, -28, 0, +28, 0, 55, -56, -56][i / (j / 16) | 0];
+		var freq;
+		//step = steps[i / (j / steps.length) | 0];
+		step = 111.5 + [-56, -28, 0, +28, 0, 55, -56, +28, 0, -28, 0, +28, 0, 55, -56, -56][i / (j / 16) | 0];
 
 		freq = sr / (step * 2 * Math.PI);
 		synData3[i] = (((i % freq) / (freq / 2)) - 1) * 0.3;
@@ -248,9 +268,9 @@ actx = new actx();
 			//addWah(c + beat[3] + n8);
 		};
 
+			synEnv.fire(c + beat[0]);
 		// Synth
 		if(i > 3) {
-			synEnv.fire(c + beat[0]);
 
 			// Double pluckin'
 			if (i > 11){
