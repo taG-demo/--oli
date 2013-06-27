@@ -1,8 +1,42 @@
 <html>
 <head>
+	<script src="http://localhost:35729/livereload.js"></script>
 <style type="text/css">
-*{margin:0; padding:0; font-family:helvetica, arial, sans-serif}
-body{position:relative}
+*{margin:0; padding:0; font-family:monospace; box-sizing: border-box;}
+body{position:relative; font-size: 60pt;}
+.cnt {
+    width: 33%;
+    position: absolute;
+    top: 20%; bottom: 0;
+    left: 30%;
+}
+.mq {
+    position: relative;
+    box-sizing: border-box;
+    -webkit-animation: mq 30s linear infinite;
+    animation: mq 30s linear infinite;
+    color: transparent;
+    text-align: center;
+    /*color: #111;
+    text-shadow: 0px -1px 4px white, 0px -2px 10px yellow, 0px -10px 20px #ff8000, 0px -18px 40px red;*/
+    text-shadow: 0px 0px 10px rgba(255,255,255,0.6),
+    	0px 0px 30px rgba(255,255,255,0.4),
+    	0px 0px 50px rgba(255,255,255,0.3),
+    	0px 0px 180px rgba(255,255,255,0.3);
+}
+
+@-webkit-keyframes mq {
+    0%   { opacity:   0}
+    50% { opacity: 1 }
+    100% { opacity: 0 }
+    /* we can use text-indent for left-to-right scroll... or just marquee tag! */
+}
+@keyframes mq {
+    0%   { opacity:   0}
+    50% { opacity: 1 }
+    100% { opacity: 0 }
+}
+
 </style>
 </head>
 <body>
@@ -99,10 +133,15 @@ void main(){
 
 </script>
 <script type="text/javascript">
-/*! oli 2013-06-25 */
-function createShaderFromScriptElement(a,b,c){var d=a.getElementById(c),e=d.text,f=function(a,b){return"x-shader/x-vertex"===b?a.VERTEX_SHADER:"x-shader/x-fragment"===b?a.FRAGMENT_SHADER:void 0}(b,d.type),g=b.createShader(f);if(b.shaderSource(g,e),b.compileShader(g),!b.getShaderParameter(g,b.COMPILE_STATUS))throw console.log("shader "+g+" failed with error : "+b.getShaderInfoLog(g)),new Error;return g}function texture(a,b){var c=a.createTexture(),d=new Image;return d.onload=function(){a.bindTexture(a.TEXTURE_2D,c),a.texImage2D(a.TEXTURE_2D,0,a.RGBA,a.RGBA,a.UNSIGNED_BYTE,d),a.texParameteri(a.TEXTURE_2D,a.TEXTURE_MAG_FILTER,a.LINEAR),a.texParameteri(a.TEXTURE_2D,a.TEXTURE_MIN_FILTER,a.LINEAR_MIPMAP_NEAREST),a.generateMipmap(a.TEXTURE_2D)},d.src=b,c}!function(a){var b=document.createElement("canvas"),c=b.getContext("experimental-webgl"),d=createShaderFromScriptElement(document,c,"2d-vertex-shader"),e=createShaderFromScriptElement(document,c,"2d-fragment-shader"),f=c.createProgram(),g=window.innerWidth,h=window.innerHeight;texture(c,"texture2.png"),b.width=g,b.height=h,c.viewport(0,0,g,h),c.attachShader(f,d),c.attachShader(f,e),c.linkProgram(f),c.useProgram(f),c.enable(c.BLEND);var i=c.getAttribLocation(f,"a_position"),j=c.createBuffer(),k=c.getUniformLocation(f,"u_resolution"),l=c.getUniformLocation(f,"u_t");c.uniform2f(k,g,h),c.enableVertexAttribArray(i),c.bindBuffer(c.ARRAY_BUFFER,j),c.bufferData(c.ARRAY_BUFFER,new Float32Array([1,1,1,-1,-1,-1,-1,1,1,1]),c.STATIC_DRAW),c.vertexAttribPointer(i,2,c.FLOAT,!0,0,0),c.uniform1i(c.getUniformLocation(f,"u_sampler"),0),requestAnimationFrame(function m(b){c.uniform1f(l,b),c.drawArrays(c.TRIANGLE_STRIP,0,5),requestAnimationFrame(m,a)},a),a.appendChild(b)}(document.getElementById("container"));
+/*! oli 2013-06-27 */
+function createShaderFromScriptElement(a,b,c){var d=a.getElementById(c),e=d.text,f=function(a,b){return"x-shader/x-vertex"===b?a.VERTEX_SHADER:"x-shader/x-fragment"===b?a.FRAGMENT_SHADER:void 0}(b,d.type),g=b.createShader(f);if(b.shaderSource(g,e),b.compileShader(g),!b.getShaderParameter(g,b.COMPILE_STATUS))throw console.log("shader "+g+" failed with error : "+b.getShaderInfoLog(g)),new Error;return g}function texture(a,b){var c=a.createTexture(),d=new Image;return d.onload=function(){a.bindTexture(a.TEXTURE_2D,c),a.texImage2D(a.TEXTURE_2D,0,a.RGBA,a.RGBA,a.UNSIGNED_BYTE,d),a.texParameteri(a.TEXTURE_2D,a.TEXTURE_MAG_FILTER,a.LINEAR),a.texParameteri(a.TEXTURE_2D,a.TEXTURE_MIN_FILTER,a.LINEAR_MIPMAP_NEAREST),a.generateMipmap(a.TEXTURE_2D)},d.src=b,c}var tempo=80,n4=60/tempo,lastBar=-1,bar=0,actx=window.AudioContext||window.webkitAudioContext;if(!actx)throw"No audio.";actx=new actx,function(){function a(a){var b=actx.createBufferSource();return b.buffer=a,b.loop=!0,b.start(0),b}function b(a){var b=S.frequency,c=a,f=200,h=2e3;b.setValueAtTime(h,c),b.linearRampToValueAtTime(f,c+1*d),b.setValueAtTime(h,c+2*d),b.linearRampToValueAtTime(f,c+3*d),b.setValueAtTime(h,c+4*e),b.linearRampToValueAtTime(f,c+5*d),b.setValueAtTime(h,c+6*d),b.linearRampToValueAtTime(f,c+7*d),b.setValueAtTime(h,c+8*g),b.linearRampToValueAtTime(f,c+9*g),b.setValueAtTime(h,c+10*g),b.linearRampToValueAtTime(f,c+11*g),b.setValueAtTime(h,c+12*g),b.linearRampToValueAtTime(f,c+13*g)}var c=actx.sampleRate,d=n4/2,e=d/2,f=e/2,g=f/2,h=1*n4*c,i=actx.createBuffer(1,h,c),j=i.getChannelData(0),k=1*e*c,l=actx.createBuffer(1,k,c),m=l.getChannelData(0),n=actx.createDelay(),o=actx.createDelay(),p=actx.createDelay(),q=actx.createGain();n.delayTime.value=d,o.delayTime.value=d+d+e,p.delayTime.value=.75*f,q.gain.value=.4;var r,s,t=60,u=(t-40)/j.length;for(r=0;r<j.length;++r)j[r]=Math.sin(r/(c/(2*t*Math.PI))),t-=u;for(r=0;r<m.length;r++)m[r]=(2*Math.random()-1)/2;var v=8*n4*c,w=actx.createBuffer(1,v,c),x=actx.createBuffer(1,v,c),y=actx.createBuffer(1,v,c),z=w.getChannelData(0),A=x.getChannelData(0);synData3=y.getChannelData(0);var B=47,C=[];for(r=0;16>r;r++)C[r]=111.5+[-111.5,-56,-28,0,28,55][0|6*Math.random()];for(console.log(C.map(function(a){return 0===a?".":a-111.5})),r=0,s=z.length;s>r;r++){var D=s/2>r?3.72:2.78;z[r]=Math.sin(r/(c/((B+.25)*D*Math.PI)))>0?1:-1,A[r]=Math.sin(r/(c/((B-.25)*D*Math.PI)))>0?1:-1;var E;step=111.5+[-56,-28,0,28,0,55,-56,28,0,-28,0,28,0,55,-56,-56][0|r/(s/16)],E=c/(2*step*Math.PI),synData3[r]=.3*(r%E/(E/2)-1)}var F=function(a,b,c){var d=actx.createGain();return d.gain.value=0,{fire:function(e){d.gain.linearRampToValueAtTime(0,e),d.gain.linearRampToValueAtTime(1,a+e),d.gain.linearRampToValueAtTime(.3,b+e),d.gain.linearRampToValueAtTime(0,c+e)},inp:function(a){a.connect(d)},outp:function(a){d.connect(a)},stop:function(a){d.gain.setValueAtTime(0,a)}}},G=a(i),H=a(l),I=a(w),J=a(x),K=a(y),L=actx.createGain();L.gain.value=2.5;var M=F(.001,.08,.2);M.inp(G),M.outp(L);var N=actx.createBiquadFilter();N.type=0,N.Q.value=4,N.frequency.value=2e3;var O=F(.001,.08,.2);O.inp(H),O.outp(N);var P=F(.001,.01,.03);P.inp(H),P.outp(N),n.connect(o),o.connect(q),q.connect(L);var Q=F(.045,.5,.05);Q.inp(I),Q.inp(J);var R=F(.02,.6,.05);R.inp(K);var S=actx.createBiquadFilter();S.type=0,S.Q.value=10,S.frequency.value=700;var T=actx.currentTime,U=actx.createGain();U.gain.value=.3,Q.outp(S),S.connect(U);var V=actx.createBiquadFilter();V.type=0,V.Q.value=5,V.frequency.value=1700,p.connect(V),R.outp(V),R.outp(p),V.connect(n),V.connect(L),U.connect(L),P.outp(n),N.connect(L),L.connect(actx.destination);for(var W=[0,0,0,0],r=0;24>r;r++){for(var s=0;4>s;s++)W[s]=T+(4*r+s)*n4,1==s%2&&M.fire(T+(s+1+4*r)*n4);r>11&&(b(T+W[0]),b(T+W[2])),Q.fire(T+W[0]),r>3&&r>11&&(Q.fire(T+W[2]),Q.fire(T+W[3]+d)),11>r||r>19?R.fire(T+W[0]):R.stop(W[0]),r>3&&(P.fire(W[0]),O.fire(W[1]),P.fire(W[1]+d+e),P.fire(W[2]+d),O.fire(W[3])),r>2&&P.fire(W[3]+d)}}(),function(a){var b=document.createElement("canvas"),c=b.getContext("experimental-webgl"),d=createShaderFromScriptElement(document,c,"2d-vertex-shader"),e=createShaderFromScriptElement(document,c,"2d-fragment-shader"),f=c.createProgram(),g=window.innerWidth,h=window.innerHeight;texture(c,"texture2.png"),b.width=g,b.height=h,c.viewport(0,0,g,h),c.attachShader(f,d),c.attachShader(f,e),c.linkProgram(f),c.useProgram(f),c.enable(c.BLEND);var i=c.getAttribLocation(f,"a_position"),j=c.createBuffer(),k=c.getUniformLocation(f,"u_resolution"),l=c.getUniformLocation(f,"u_t");c.uniform2f(k,g,h),c.enableVertexAttribArray(i),c.bindBuffer(c.ARRAY_BUFFER,j),c.bufferData(c.ARRAY_BUFFER,new Float32Array([1,1,1,-1,-1,-1,-1,1,1,1]),c.STATIC_DRAW),c.vertexAttribPointer(i,2,c.FLOAT,!0,0,0),c.uniform1i(c.getUniformLocation(f,"u_sampler"),0),requestAnimationFrame(function m(b){var d=actx.currentTime;bar=0|d/(4*n4),bar!=lastBar&&console.log(bar),lastBar=bar,c.uniform1f(l,b),c.drawArrays(c.TRIANGLE_STRIP,0,5),requestAnimationFrame(m,a)},a),a.appendChild(b)}(document.getElementById("container"));
 </script>
 
+<div class="cnt">
+	<div class="mq">
+		Lorem ipsum dolor sit amet
+	</div>
+</div>
 </body>
 
 </html>
