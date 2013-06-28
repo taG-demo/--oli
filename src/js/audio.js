@@ -3,7 +3,6 @@
   lastBar = -1,
   bar = 0;
 
-
   //http://youtu.be/qjx2IArwz1Q?t=25m31s
 
 var actx = window.AudioContext || window.webkitAudioContext;
@@ -268,10 +267,10 @@ actx = new actx();
 			//addWah(c + beat[3] + n8);
 		};
 
-			synEnv.fire(c + beat[0]);
 		// Synth
 		if(i > 3) {
 
+			synEnv.fire(c + beat[0]);
 			// Double pluckin'
 			if (i > 11){
 				synEnv.fire(c + beat[2]);
