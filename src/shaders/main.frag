@@ -32,10 +32,10 @@ float d2(vec2 o, vec2 p, float t){
   return 1. / distance( o + z * f, p) +.3;
 }
 
-float d3(vec2 o, vec2 p, float t){
-  float r = sin(t / 120.)  ;
-  vec2 f = vec2( r * sin(t/100.)/5. , r * cos(t/100.)/5. );
-  vec2 z = vec2(0., 0.);
+float d3(vec2 o, vec2 p, float t, float i, float t0){
+  float r = t0  ;
+  vec2 f = vec2( r * sin(t/1000.)/5. , r * cos(t/1000.)/5. );
+  vec2 z = vec2(2., 2.);
   return 1. / distance( o + z * f, p) +.3;
 }
 
@@ -46,15 +46,25 @@ float d4(vec2 o, vec2 p, float t, float t0){
   return 1. / distance( o + z * f, p) +.3;
 }
 
+float d5(vec2 o, vec2 p, float t){
+  float r = sin(t / 120.)  ;
+  vec2 f = vec2( r * sin(t/100.)/5. , r * cos(t/100.)/5. );
+  vec2 z = vec2(0., 0.);
+  return 1. / distance( o + z * f, p) +.3;
+}
+
 
 void main(){
   vec2 p          =  gl_FragCoord.xy / u_resolution.xy;
   float color = 0.;
+  vec2 o = vec2( 0.5 , 0.5);
   for(float i = 0.; i < nbDots; i++){
     //position of the point/lights
-    color += (u_fType == 1 ? d1(vec2( 0.5 , 0.5), p, u_t * (1.5) + 1000.*i + 32000., u_timeIntensity) : 
-             u_fType == 2 ? d2(vec2( 0.5 , 0.5), p, u_t * (1.5) + 1000.*i + 32000.) : 
-             d4(vec2( 0.5 , 0.5), p, u_t * (1.5) + 1000.*i + 32000., u_timeIntensity) ) *  
+    color += (u_fType == 1 ? d1(o, p, u_t * (1.5) + 1000.*i + 32000., u_timeIntensity) : 
+              u_fType == 2 ? d2(o, p, u_t * (1.5) + 1000.*i + 32000.) : 
+              u_fType == 3 ? d3(o, p, u_t * (1.5) + 1000.*i + 32000., i, u_timeIntensity ) : 
+              u_fType == 4 ? d4(o, p, u_t * (1.5) + 1000.*i + 32000., u_timeIntensity ) : 
+                             d5(o, p, u_t * (1.5) + 1000.*i + 32000.) ) *  
       // intensity of the glow
       //(cos(u_t/400.0) +6.0)/256.0 *
       ( 0.01 + ( 1. / (100. * u_timeIntensity)) ) *
