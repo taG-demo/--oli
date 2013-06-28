@@ -53,6 +53,6 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('assemble');
 
   // Default task(s).
-  grunt.registerTask('default', ['concat', 'uglify', 'assemble']);
+  grunt.registerTask('default', ['concat', 'assemble']);
   grunt.registerTask('auto', ['default', 'watch']);
 };

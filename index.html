@@ -1,6 +1,5 @@
 <html>
 <head>
-	<script src="http://localhost:35729/livereload.js"></script>
 <style type="text/css">
 *{margin:0; padding:0; font-family:monospace; box-sizing: border-box;}
 body{position:relative; font-size: 60pt;}
@@ -78,22 +77,44 @@ uniform sampler2D u_sampler;
 
 const float nbDots       = 30.;
 
-float d(vec2 o, vec2 p, float t){
+float d1(vec2 o, vec2 p, float t, float t0){
   float r = sin(t / 12000.)  ;
   vec2 f = vec2( r * sin(t/1000.)/5. , r * cos(t/1000.)/5. );
   vec2 z = vec2(2., 2.);
   return 1. / distance( o + z * f, p) +.3;
 }
 
+float d2(vec2 o, vec2 p, float t){
+  float r = 1.; //sin(t / 12000.)  ;
+  vec2 f = vec2( r * sin(t/1000.)/5. , r * cos(t/1000.)/5. );
+  vec2 z = vec2(2., 2.);
+  return 1. / distance( o + z * f, p) +.3;
+}
+
+float d3(vec2 o, vec2 p, float t){
+  float r = sin(t / 120.)  ;
+  vec2 f = vec2( r * sin(t/100.)/5. , r * cos(t/100.)/5. );
+  vec2 z = vec2(0., 0.);
+  return 1. / distance( o + z * f, p) +.3;
+}
+
+float d4(vec2 o, vec2 p, float t, float t0){
+  float r = 1./t0 - 1.;
+  vec2 f = vec2( r * sin(t/100.)/5. , r * cos(t/100.)/5. );
+  vec2 z = vec2(4., 4.);
+  return 1. / distance( o + z * f, p) +.3;
+}
+
+
 void main(){
   vec2 p          =  gl_FragCoord.xy / u_resolution.xy;
   float color = 0.;
   for(float i = 0.; i < nbDots; i++){
     //position of the point/lights
-    color += d( vec2( 0.5 , 0.5), p, u_t * (1.5) + 1000.*i + 32000.) *  
+    color += d1( vec2( 0.5 , 0.5), p, u_t * (1.5) + 1000.*i + 32000., u_timeIntensity) *  
       // intensity of the glow
       //(cos(u_t/400.0) +6.0)/256.0 *
-      ( 0.05 + ( cos(u_timeIntensity * 5.) / ((u_timeIntensity * u_timeIntensity)) ) * .0001) *
+      ( 0.01 + ( 1. / (100. * u_timeIntensity)) ) *
       //are they on? // Add some light over time
       min( ( max(u_dotsVisible, i ) - i  ),1.) ; 
   }
@@ -107,41 +128,483 @@ void main(){
   vec3 c = vec3(1.0, 1.0, 1.) * color ;
   for(float n = 0.; n < 5.; n++){
     float decal = 0.2 * n;
-    float ts = u_t/1600.;
+    float ts = u_t/160.;
     float w = .05  * p.x + 0.05 * ( sin(ts) + 1.)/2. ;
     float sinus = sin( p.x * 2. + ts + decal  )/ 3.;
     if( p.y > .4 + sinus  && p.y <  .4 + w + sinus ) {
       c += vec3( 
           sin(n) * 127. + 128., 
           sin(n + 1.) * 127. + 128., 
-          sin(n+3.) * 127. + 128. ) / 256. * color;
-      if(p.x > cos( mod(u_t / 800. + 1. , 3.) ) + 0.8 + 0.05 * sin(u_t) && p.x < cos(mod(u_t/800. + 1., 3.))+0.8 + .1 * sin(u_t) ){
-          c *=  0.9;
-      }
+          sin(n+3.) * 127. + 128. ) / 256. * color ;
+//    if(p.x > cos( mod(u_t / 800. + 1. , 3.) ) + 0.8 + 0.05 * sin(u_t) && p.x < cos(mod(u_t/800. + 1., 3.))+0.8 + .1 * sin(u_t) ){
+//        c *=  0.9;
+//    }
 
     }
   }
 
-  if( u_step > 0 && mod(u_t, 300.) < 100. * cos(u_t / 100.) ){
-      vec2 cDamier = clamp( cos(p*1000.)*10. , 0.2, .21) ;
-      float th = cos(u_t / 1000.) * 1.3 ;
-      float zoom = 4. +  ( cos(u_t / 1000.) + 1.) * 5.;
-      //c = 
-      gl_FragColor = vec4( c * (cDamier.x + cDamier.y)  ,  1.9- 
-            (texture2D( u_sampler, mat2( cos(th), sin(th), -sin(th), cos(th))  * p * vec2(1., -1.)  * zoom + vec2(0, cos(u_t/800.) ) )).x  );
-
-   }
-        else {
-  vec2 cDamier = clamp( cos(p*1000.)*10. , 0.2, .21) ;
-  c *=  (cDamier.x + cDamier.y);
-  gl_FragColor    = vec4(c , 1.0);
-      }
+//  if( u_step > 0 && mod(u_t, 300.) < 100. * cos(u_t / 100.) ){
+//      vec2 cDamier = clamp( cos(p*1000.)*10. , 0.2, .21) ;
+//      float th = cos(u_t / 1000.) * 1.3 ;
+//      float zoom = 4. +  ( cos(u_t / 1000.) + 1.) * 5.;
+//      gl_FragColor = vec4( c * (cDamier.x + cDamier.y)  ,  1.9- 
+//            (texture2D( u_sampler, mat2( cos(th), sin(th), -sin(th), cos(th))  * p * vec2(1., -1.)  * zoom + vec2(0, cos(u_t/800.) ) )).x  );
+//  }
+//  else {
+        vec2 cDamier = clamp( cos(p*1000.)*10. , 0.2, .21) ;
+        c *=  (cDamier.x + cDamier.y);
+        gl_FragColor    = vec4(c , 1.0);
+//    }
 }
 
 </script>
 <script type="text/javascript">
-/*! oli 2013-06-27 */
-function createShaderFromScriptElement(a,b,c){var d=a.getElementById(c),e=d.text,f=function(a,b){return"x-shader/x-vertex"===b?a.VERTEX_SHADER:"x-shader/x-fragment"===b?a.FRAGMENT_SHADER:void 0}(b,d.type),g=b.createShader(f);if(b.shaderSource(g,e),b.compileShader(g),!b.getShaderParameter(g,b.COMPILE_STATUS))throw console.log("shader "+g+" failed with error : "+b.getShaderInfoLog(g)),new Error;return g}function texture(a,b){var c=a.createTexture(),d=new Image;return d.onload=function(){a.bindTexture(a.TEXTURE_2D,c),a.texImage2D(a.TEXTURE_2D,0,a.RGBA,a.RGBA,a.UNSIGNED_BYTE,d),a.texParameteri(a.TEXTURE_2D,a.TEXTURE_MAG_FILTER,a.LINEAR),a.texParameteri(a.TEXTURE_2D,a.TEXTURE_MIN_FILTER,a.LINEAR_MIPMAP_NEAREST),a.generateMipmap(a.TEXTURE_2D)},d.src=b,c}var tempo=80,n4=60/tempo,lastBar=-1,bar=0,actx=window.AudioContext||window.webkitAudioContext;if(!actx)throw"No audio.";actx=new actx,function(){function a(a){var b=actx.createBufferSource();return b.buffer=a,b.loop=!0,b.start(0),b}function b(a){var b=S.frequency,c=a,f=200,h=2e3;b.setValueAtTime(h,c),b.linearRampToValueAtTime(f,c+1*d),b.setValueAtTime(h,c+2*d),b.linearRampToValueAtTime(f,c+3*d),b.setValueAtTime(h,c+4*e),b.linearRampToValueAtTime(f,c+5*d),b.setValueAtTime(h,c+6*d),b.linearRampToValueAtTime(f,c+7*d),b.setValueAtTime(h,c+8*g),b.linearRampToValueAtTime(f,c+9*g),b.setValueAtTime(h,c+10*g),b.linearRampToValueAtTime(f,c+11*g),b.setValueAtTime(h,c+12*g),b.linearRampToValueAtTime(f,c+13*g)}var c=actx.sampleRate,d=n4/2,e=d/2,f=e/2,g=f/2,h=1*n4*c,i=actx.createBuffer(1,h,c),j=i.getChannelData(0),k=1*e*c,l=actx.createBuffer(1,k,c),m=l.getChannelData(0),n=actx.createDelay(),o=actx.createDelay(),p=actx.createDelay(),q=actx.createGain();n.delayTime.value=d,o.delayTime.value=d+d+e,p.delayTime.value=.75*f,q.gain.value=.4;var r,s,t=60,u=(t-40)/j.length;for(r=0;r<j.length;++r)j[r]=Math.sin(r/(c/(2*t*Math.PI))),t-=u;for(r=0;r<m.length;r++)m[r]=(2*Math.random()-1)/2;var v=8*n4*c,w=actx.createBuffer(1,v,c),x=actx.createBuffer(1,v,c),y=actx.createBuffer(1,v,c),z=w.getChannelData(0),A=x.getChannelData(0);synData3=y.getChannelData(0);var B=47,C=[];for(r=0;16>r;r++)C[r]=111.5+[-111.5,-56,-28,0,28,55][0|6*Math.random()];for(console.log(C.map(function(a){return 0===a?".":a-111.5})),r=0,s=z.length;s>r;r++){var D=s/2>r?3.72:2.78;z[r]=Math.sin(r/(c/((B+.25)*D*Math.PI)))>0?1:-1,A[r]=Math.sin(r/(c/((B-.25)*D*Math.PI)))>0?1:-1;var E;step=111.5+[-56,-28,0,28,0,55,-56,28,0,-28,0,28,0,55,-56,-56][0|r/(s/16)],E=c/(2*step*Math.PI),synData3[r]=.3*(r%E/(E/2)-1)}var F=function(a,b,c){var d=actx.createGain();return d.gain.value=0,{fire:function(e){d.gain.linearRampToValueAtTime(0,e),d.gain.linearRampToValueAtTime(1,a+e),d.gain.linearRampToValueAtTime(.3,b+e),d.gain.linearRampToValueAtTime(0,c+e)},inp:function(a){a.connect(d)},outp:function(a){d.connect(a)},stop:function(a){d.gain.setValueAtTime(0,a)}}},G=a(i),H=a(l),I=a(w),J=a(x),K=a(y),L=actx.createGain();L.gain.value=2.5;var M=F(.001,.08,.2);M.inp(G),M.outp(L);var N=actx.createBiquadFilter();N.type=0,N.Q.value=4,N.frequency.value=2e3;var O=F(.001,.08,.2);O.inp(H),O.outp(N);var P=F(.001,.01,.03);P.inp(H),P.outp(N),n.connect(o),o.connect(q),q.connect(L);var Q=F(.045,.5,.05);Q.inp(I),Q.inp(J);var R=F(.02,.6,.05);R.inp(K);var S=actx.createBiquadFilter();S.type=0,S.Q.value=10,S.frequency.value=700;var T=actx.currentTime,U=actx.createGain();U.gain.value=.3,Q.outp(S),S.connect(U);var V=actx.createBiquadFilter();V.type=0,V.Q.value=5,V.frequency.value=1700,p.connect(V),R.outp(V),R.outp(p),V.connect(n),V.connect(L),U.connect(L),P.outp(n),N.connect(L),L.connect(actx.destination);for(var W=[0,0,0,0],r=0;24>r;r++){for(var s=0;4>s;s++)W[s]=T+(4*r+s)*n4,1==s%2&&M.fire(T+(s+1+4*r)*n4);r>11&&(b(T+W[0]),b(T+W[2])),Q.fire(T+W[0]),r>3&&r>11&&(Q.fire(T+W[2]),Q.fire(T+W[3]+d)),11>r||r>19?R.fire(T+W[0]):R.stop(W[0]),r>3&&(P.fire(W[0]),O.fire(W[1]),P.fire(W[1]+d+e),P.fire(W[2]+d),O.fire(W[3])),r>2&&P.fire(W[3]+d)}}(),function(a){var b=document.createElement("canvas"),c=b.getContext("experimental-webgl"),d=createShaderFromScriptElement(document,c,"2d-vertex-shader"),e=createShaderFromScriptElement(document,c,"2d-fragment-shader"),f=c.createProgram(),g=window.innerWidth,h=window.innerHeight;texture(c,"texture2.png"),b.width=g,b.height=h,c.viewport(0,0,g,h),c.attachShader(f,d),c.attachShader(f,e),c.linkProgram(f),c.useProgram(f),c.enable(c.BLEND);var i=c.getAttribLocation(f,"a_position"),j=c.createBuffer(),k=c.getUniformLocation(f,"u_step"),l=c.getUniformLocation(f,"u_resolution"),m=c.getUniformLocation(f,"u_t"),n=c.getUniformLocation(f,"u_timeIntensity"),o=c.getUniformLocation(f,"u_dotsVisible");c.uniform2f(l,g,h),c.enableVertexAttribArray(i),c.bindBuffer(c.ARRAY_BUFFER,j),c.bufferData(c.ARRAY_BUFFER,new Float32Array([1,1,1,-1,-1,-1,-1,1,1,1]),c.STATIC_DRAW),c.vertexAttribPointer(i,2,c.FLOAT,!0,0,0),c.uniform1i(c.getUniformLocation(f,"u_sampler"),0);var p=0,q=0;requestAnimationFrame(function r(b){var d=actx.currentTime,e=0|d/(4*n4);e!=lastBar&&(console.log(e,q),q=d,c.uniform1f(o,e),lastBar=e),p=d-q,c.uniform1f(m,100*d),c.uniform1i(k,Math.floor(b/1e4)),c.uniform1f(n,p),c.drawArrays(c.TRIANGLE_STRIP,0,5),requestAnimationFrame(r,a)},a),a.appendChild(b)}(document.getElementById("container"));
+ var tempo = 80,
+  n4 = 60 / tempo,
+  lastBar = -1,
+  bar = 0;
+
+
+  //http://youtu.be/qjx2IArwz1Q?t=25m31s
+
+var actx = window.AudioContext || window.webkitAudioContext;
+if (!actx) {
+	throw("No audio.");
+}
+actx = new actx();
+
+(function () {
+
+	var sr = actx.sampleRate,
+  		n8 = n4 / 2,
+  		n16 = n8 / 2,
+      	n32 = n16 / 2,
+      	n64 = n32 / 2,
+
+		kickLen = (n4 * 1) * sr,
+		kickBuffer = actx.createBuffer(1, kickLen, sr),
+		kickData = kickBuffer.getChannelData(0),
+
+		snareLen = (n16 * 1) * sr,
+		snareBuf = actx.createBuffer(1, snareLen, sr),
+		snareData = snareBuf.getChannelData(0),
+
+		delayNode = actx.createDelay(),
+		delayNode2 = actx.createDelay(),
+		delayNode3 = actx.createDelay(),
+		delayGain = actx.createGain();
+
+	// Hi-hat delay
+	delayNode.delayTime.value = n8;
+	delayNode2.delayTime.value = n8 + n8 + n16;
+	delayNode3.delayTime.value = n32 * 0.75;
+	delayGain.gain.value = 0.4;
+
+
+
+	// Sine wave generator
+	var i, j,
+		sfreq = 60,
+		freqDrop = (sfreq - 40) / kickData.length;
+	for (i = 0; i < kickData.length; ++i) {
+		kickData[i] = Math.sin(i / (sr / (sfreq * 2 * Math.PI)));
+		sfreq -= freqDrop;
+	}
+
+	// Noise generator
+	for (i = 0; i < snareData.length; i++) {
+		snareData[i] = (Math.random() * 2 - 1) / 2;
+	}
+
+	/* Synth */
+	var synLen = (n4 * 8) * sr,
+		synBuf = actx.createBuffer(1, synLen, sr),
+		synBuf2 = actx.createBuffer(1, synLen, sr),
+		synBuf3 = actx.createBuffer(1, synLen, sr),
+		synData = synBuf.getChannelData(0),
+		synData2 = synBuf2.getChannelData(0);
+		synData3 = synBuf3.getChannelData(0);
+
+	// Square wave generator
+	var synNote = 47,
+		steps = [];
+
+
+	// Magic number...
+		// 115.5 = F4.
+		//   -56 = F3
+		//   -28 = C4 .... -23 = C# ...-18/-19 = D
+		//	  28 = A4
+		//    55 = C5
+
+	for (i = 0; i < 16; i++) {
+		steps[i] = (111.5 + ([-111.5, -56, -28, 0, +28, +55][Math.random() * 6 | 0]));
+	}
+	console.log(steps.map(function(n){return n === 0 ? "." : n - 111.5}));
+
+	for (i = 0, j = synData.length; i < j; i++) {
+
+		var xxx = i < j / 2 ? 3.72 : 2.78;
+
+		synData[i] = Math.sin(i / (sr / ((synNote + 0.25) * xxx * Math.PI))) > 0 ? 1 : -1;
+		synData2[i] = Math.sin(i / (sr / ((synNote - 0.25) * xxx * Math.PI))) > 0 ? 1 : -1;
+
+		// -28, +28, 55
+		var freq;
+		//step = steps[i / (j / steps.length) | 0];
+		step = 111.5 + [-56, -28, 0, +28, 0, 55, -56, +28, 0, -28, 0, +28, 0, 55, -56, -56][i / (j / 16) | 0];
+
+		freq = sr / (step * 2 * Math.PI);
+		synData3[i] = (((i % freq) / (freq / 2)) - 1) * 0.3;
+
+	}
+
+	var Env = function (a, d, r) {
+		var node = actx.createGain();
+		node.gain.value = 0;
+		return {
+			fire: function (off) {
+				//node.gain.setValueAtTime(0, off);
+				node.gain.linearRampToValueAtTime(0, off);
+				node.gain.linearRampToValueAtTime(1, a + off);
+				node.gain.linearRampToValueAtTime(0.3, d + off);
+				node.gain.linearRampToValueAtTime(0, r + off);
+			},
+			inp: function(src) {
+				src.connect(node);
+			},
+			outp: function(dest) {
+ 				node.connect(dest);
+			},
+			stop: function(off) {
+				node.gain.setValueAtTime(0, off);
+			}
+		}
+	};
+
+	function createNode(buffer) {
+		var node = actx.createBufferSource();
+		node.buffer = buffer;
+		node.loop = true;
+		node.start(0);
+		return node;
+	}
+
+	var kickNode = createNode(kickBuffer),
+		snareNode = createNode(snareBuf),
+		synNode = createNode(synBuf),
+		synNode2 = createNode(synBuf2),
+		synNode3 = createNode(synBuf3);
+
+	// var i = "";
+	// for(var t in actx) {
+	// 	i+= t + ":" + actx[t] + "<Br/>";
+	// }
+	// document.body.innerHTML = i;
+
+	var gainMaster = actx.createGain();
+	gainMaster.gain.value = 2.5;
+
+	var kickEnv = Env(0.001, 0.08, 0.2);
+	kickEnv.inp(kickNode);
+	kickEnv.outp(gainMaster);
+
+	var hihatFilter = actx.createBiquadFilter();
+	hihatFilter.type = 0;
+	hihatFilter.Q.value = 4;
+	hihatFilter.frequency.value = 2000;
+
+	var snareEnv = Env(0.001, 0.08, 0.2);
+	snareEnv.inp(snareNode);
+	snareEnv.outp(hihatFilter);
+
+	var hatEnv = Env(0.001, 0.01, 0.03);
+	hatEnv.inp(snareNode);
+	hatEnv.outp(hihatFilter);
+
+	delayNode.connect(delayNode2);
+	delayNode2.connect(delayGain);
+
+	delayGain.connect(gainMaster);
+
+	var synEnv = Env(0.045, 0.5, 0.05);
+	synEnv.inp(synNode);
+	synEnv.inp(synNode2);
+
+	var syn2Env = Env(0.02, 0.6, 0.05);
+	syn2Env.inp(synNode3);
+
+	var synFilter = actx.createBiquadFilter();
+	synFilter.type = 0;
+	synFilter.Q.value = 10;
+	synFilter.frequency.value = 700;
+
+	var c = actx.currentTime;
+
+	function addWah(off) {
+		var freq = synFilter.frequency;
+		var lastBeat = off,
+			low = 200,
+			hi = 2000;
+		freq.setValueAtTime(hi, lastBeat);
+		freq.linearRampToValueAtTime(low, lastBeat + (n8 * 1));
+		freq.setValueAtTime(hi, lastBeat + (n8 * 2));
+		freq.linearRampToValueAtTime(low, lastBeat + (n8 * 3));
+		freq.setValueAtTime(hi, lastBeat + (n16 * 4));
+		freq.linearRampToValueAtTime(low, lastBeat + (n8 * 5));
+		freq.setValueAtTime(hi, lastBeat + (n8 * 6));
+		freq.linearRampToValueAtTime(low, lastBeat + (n8 * 7));
+		freq.setValueAtTime(hi, lastBeat + (n64 * 8));
+		freq.linearRampToValueAtTime(low, lastBeat + (n64 * 9));
+		freq.setValueAtTime(hi, lastBeat + (n64 * 10));
+		freq.linearRampToValueAtTime(low, lastBeat + (n64 * 11));
+		freq.setValueAtTime(hi, lastBeat + (n64 * 12));
+		freq.linearRampToValueAtTime(low, lastBeat + (n64 * 13));
+		// freq.setValueAtTime(700, lastBeat + (n64 * 14));
+		// freq.linearRampToValueAtTime(1100, lastBeat + (n64 * 15));
+	}
+
+	var synGain = actx.createGain();
+	synGain.gain.value = 0.3;
+
+	synEnv.outp(synFilter);
+	synFilter.connect(synGain);
+
+	//var melFilter = actx.
+
+
+	var melFilter = actx.createBiquadFilter();
+	melFilter.type = 0;
+	melFilter.Q.value = 5;
+	melFilter.frequency.value = 1700;
+
+
+	// var testvib = actx.createJavaScriptNode(4096 * 4, 1, 1);
+	// var cc = 0,
+	// 	v = 0.5,
+	// 	s = 1.0;
+	// testvib.onaudioprocess = function(ev) {
+ //        var inp = ev.inputBuffer.getChannelData(0);
+ //        var out = ev.outputBuffer.getChannelData(0);
+
+ //        for (var i = 0; i < inp.length; i++) {
+ //            out[i] = inp[i] * (1+Math.sin(cc*s*0.001)*v);
+ //            cc++;
+ //        }
+ //    }
+
+	//syn2Env.outp(melFilter);
+	//syn2Env.outp(delayNode3);
+	delayNode3.connect(melFilter);
+	syn2Env.outp(melFilter);
+	//testvib.connect(melFilter);
+	syn2Env.outp(delayNode3);
+
+	melFilter.connect(delayNode);
+	melFilter.connect(gainMaster);
+
+	//synGain.connect(delayNode);
+	synGain.connect(gainMaster);
+
+	hatEnv.outp(delayNode);
+	hihatFilter.connect(gainMaster);
+
+	gainMaster.connect(actx.destination);
+
+
+	var beat = [0,0,0,0];
+	// Sequence up some stuffs
+	for (var i = 0; i < 24; i++) {
+
+		// Four on the floor
+		for (var j = 0; j < 4; j++) {
+			beat[j] = c + (i * 4 + j) * n4;
+			j % 2 == 1 && kickEnv.fire(c + ((j+1) + i * 4) * n4);
+		}
+
+		//Wahhhh filter
+		if (i > 11){
+			addWah(c + beat[0])
+			addWah(c + beat[2]);
+			//addWah(c + beat[3] + n8);
+		};
+
+			synEnv.fire(c + beat[0]);
+		// Synth
+		if(i > 3) {
+
+			// Double pluckin'
+			if (i > 11){
+				synEnv.fire(c + beat[2]);
+				synEnv.fire(c + beat[3] + n8);
+			}
+		}
+
+		if(i < 11 || i > 19) {
+			syn2Env.fire(c + beat[0]);
+		} else {
+			syn2Env.stop(beat[0]);
+		}
+
+
+		// Hats n snare
+		if (i > 3) {
+			hatEnv.fire(beat[0]);
+
+			snareEnv.fire(beat[1]);
+			hatEnv.fire(beat[1] + n8 + n16);
+
+			hatEnv.fire(beat[2] + n8);
+
+			snareEnv.fire(beat[3]);
+		}
+		i > 2 && hatEnv.fire(beat[3] + n8);
+	}
+
+
+}());;function createShaderFromScriptElement(doc, glCtx, scriptId){
+  var shaderElt   = doc.getElementById(scriptId),
+      shaderSrc   = shaderElt.text,
+      shaderType  = (function(ctx, t){
+        if(t === "x-shader/x-vertex")
+          return ctx.VERTEX_SHADER;
+        else if(t === "x-shader/x-fragment")
+          return ctx.FRAGMENT_SHADER;
+      })(glCtx, shaderElt.type),
+      shader      = glCtx.createShader(shaderType);
+
+  glCtx.shaderSource(shader, shaderSrc);
+  glCtx.compileShader(shader);
+
+  if(!glCtx.getShaderParameter(shader, glCtx.COMPILE_STATUS)){
+      console.log("shader " + shader + " failed with error : " + glCtx.getShaderInfoLog(shader));
+      throw new Error();
+  }
+
+  return shader;
+}
+
+function texture( gl, path ){
+  var texture = gl.createTexture(),
+      img     = new Image();
+
+  img.onload  = (function textureLoaded(){
+    gl.bindTexture( gl.TEXTURE_2D, texture);
+    gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+    gl.generateMipmap( gl.TEXTURE_2D);
+  });
+
+  img.src = path;
+
+  return texture;
+}
+
+(function(container){
+    var canvas  = document.createElement("canvas"),
+        ctx     = canvas.getContext("experimental-webgl"),
+        vShader = createShaderFromScriptElement(document, ctx, "2d-vertex-shader"),
+        fShader = createShaderFromScriptElement(document, ctx, "2d-fragment-shader"),
+        program = ctx.createProgram(),
+        X       = window.innerWidth,
+        Y       = window.innerHeight,
+        tex1    = texture(ctx, "texture2.png");
+
+    canvas.width  = X;
+    canvas.height = Y;
+
+    ctx.viewport(0, 0, X, Y);
+
+    ctx.attachShader(program, vShader);
+    ctx.attachShader(program, fShader);
+
+    ctx.linkProgram(program);
+
+    ctx.useProgram(program);
+    ctx.enable(ctx.BLEND);
+
+    var posLoc    = ctx.getAttribLocation(program, "a_position"),
+        buffer    = ctx.createBuffer(),
+        stepLoc   = ctx.getUniformLocation(program, "u_step"),
+        resLoc    = ctx.getUniformLocation(program, "u_resolution"),
+        timeLoc   = ctx.getUniformLocation(program, "u_t"),
+        tIntensLoc= ctx.getUniformLocation(program, "u_timeIntensity"),
+        dotsLoc   = ctx.getUniformLocation(program, "u_dotsVisible"),
+        REZ       = ctx.uniform2f(resLoc, X, Y);
+
+    ctx.enableVertexAttribArray(posLoc);
+
+    ctx.bindBuffer(ctx.ARRAY_BUFFER, buffer);
+    ctx.bufferData(
+      ctx.ARRAY_BUFFER,
+      new Float32Array([
+         1,  1,
+         1, -1,
+         -1, -1,
+        -1, 1,
+         1,  1
+      ]),
+      ctx.STATIC_DRAW
+    );
+
+    ctx.vertexAttribPointer(posLoc, 2, ctx.FLOAT, true, 0, 0);
+
+//    ctx.activeTexture( ctx.TEXTURE0 );
+//    ctx.bindTexture( ctx.TEXTURE_2D, tex1 );
+    ctx.uniform1i( ctx.getUniformLocation(program, "u_sampler"), 0);
+
+    //var pause = false;
+    //document.addEventListener("click",function(){ pause = !pause;});
+    var tIntensity = 0,
+        pos = 0,
+        scene = [
+          [1,100],  
+          [1,0],  
+          [1,100],  
+          [1,0],  
+          [1,100],  
+          [5,0],  
+          [5,100],  
+          [5,0],  
+          [5,100],  
+          [5,0],  
+          [5,100],  
+          [5,0],  
+          [5,100],  
+          [5,0],  
+          [1,100],  
+          [1,0],  
+          [20,100]  
+        ];
+
+    requestAnimationFrame(function loop(time){
+          var seqTime = actx.currentTime;
+          var bar = seqTime / (n4 * 4) | 0;
+          if (bar != lastBar) {
+            lastBar = bar;
+            console.log(bar, pos);
+            if(scene[bar][1] === 0){
+                pos = seqTime;
+            }
+            ctx.uniform1f(dotsLoc, scene[bar][0]);
+          
+          }
+          
+
+          tIntensity = seqTime - pos;
+          ctx.uniform1f(timeLoc, seqTime * 100);
+          ctx.uniform1i(stepLoc, Math.floor(time/10000));
+          ctx.uniform1f(tIntensLoc, tIntensity);
+          ctx.drawArrays(ctx.TRIANGLE_STRIP, 0, 5);
+        requestAnimationFrame(loop, container);
+    }, container);
+
+
+
+    container.appendChild(canvas);
+  })(document.getElementById("container"));
+
 </script>
 
 <div class="cnt">

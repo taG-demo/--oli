@@ -93,20 +93,42 @@ function texture( gl, path ){
     //var pause = false;
     //document.addEventListener("click",function(){ pause = !pause;});
     var tIntensity = 0,
-        pos = 0;
+        pos = 0,
+        scene = [
+          [1,100],  
+          [1,0],  
+          [1,100],  
+          [1,0],  
+          [1,100],  
+          [5,0],  
+          [5,100],  
+          [5,0],  
+          [5,100],  
+          [5,0],  
+          [5,100],  
+          [5,0],  
+          [5,100],  
+          [5,0],  
+          [1,100],  
+          [1,0],  
+          [20,100]  
+        ];
 
     requestAnimationFrame(function loop(time){
           var seqTime = actx.currentTime;
           var bar = seqTime / (n4 * 4) | 0;
           if (bar != lastBar) {
-            console.log(bar, pos);
-            pos = seqTime;
-            ctx.uniform1f(dotsLoc, bar);
             lastBar = bar;
+            console.log(bar, pos);
+            if(scene[bar][1] === 0){
+                pos = seqTime;
+            }
+            ctx.uniform1f(dotsLoc, scene[bar][0]);
+          
           }
           
-          tIntensity = (seqTime - pos);
 
+          tIntensity = seqTime - pos;
           ctx.uniform1f(timeLoc, seqTime * 100);
           ctx.uniform1i(stepLoc, Math.floor(time/10000));
           ctx.uniform1f(tIntensLoc, tIntensity);
