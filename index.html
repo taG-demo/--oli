@@ -25,8 +25,8 @@ body{position:relative; font-size: 60pt;}
 }
 
 @-webkit-keyframes mq {
-    0%   { opacity:   0}
-    50% { opacity: 1 }
+    0%   { opacity: 0;}
+    50% { opacity: 1; }
     100% { opacity: 0 }
     /* we can use text-indent for left-to-right scroll... or just marquee tag! */
 }
@@ -75,6 +75,8 @@ uniform float u_timeIntensity;
 uniform vec2  u_resolution;
 uniform sampler2D u_sampler;
 
+uniform int u_fType;
+
 const float nbDots       = 30.;
 
 float d1(vec2 o, vec2 p, float t, float t0){
@@ -111,7 +113,9 @@ void main(){
   float color = 0.;
   for(float i = 0.; i < nbDots; i++){
     //position of the point/lights
-    color += d1( vec2( 0.5 , 0.5), p, u_t * (1.5) + 1000.*i + 32000., u_timeIntensity) *  
+    color += (u_fType == 1 ? d1(vec2( 0.5 , 0.5), p, u_t * (1.5) + 1000.*i + 32000., u_timeIntensity) : 
+             u_fType == 2 ? d2(vec2( 0.5 , 0.5), p, u_t * (1.5) + 1000.*i + 32000.) : 
+             d4(vec2( 0.5 , 0.5), p, u_t * (1.5) + 1000.*i + 32000., u_timeIntensity) ) *  
       // intensity of the glow
       //(cos(u_t/400.0) +6.0)/256.0 *
       ( 0.01 + ( 1. / (100. * u_timeIntensity)) ) *
@@ -163,7 +167,6 @@ void main(){
   n4 = 60 / tempo,
   lastBar = -1,
   bar = 0;
-
 
   //http://youtu.be/qjx2IArwz1Q?t=25m31s
 
@@ -429,10 +432,10 @@ actx = new actx();
 			//addWah(c + beat[3] + n8);
 		};
 
-			synEnv.fire(c + beat[0]);
 		// Synth
 		if(i > 3) {
 
+			synEnv.fire(c + beat[0]);
 			// Double pluckin'
 			if (i > 11){
 				synEnv.fire(c + beat[2]);
@@ -529,6 +532,7 @@ function texture( gl, path ){
         stepLoc   = ctx.getUniformLocation(program, "u_step"),
         resLoc    = ctx.getUniformLocation(program, "u_resolution"),
         timeLoc   = ctx.getUniformLocation(program, "u_t"),
+        fTypeLoc  = ctx.getUniformLocation(program, "u_fType"),
         tIntensLoc= ctx.getUniformLocation(program, "u_timeIntensity"),
         dotsLoc   = ctx.getUniformLocation(program, "u_dotsVisible"),
         REZ       = ctx.uniform2f(resLoc, X, Y);
@@ -559,23 +563,23 @@ function texture( gl, path ){
     var tIntensity = 0,
         pos = 0,
         scene = [
-          [1,100],  
-          [1,0],  
-          [1,100],  
-          [1,0],  
-          [1,100],  
-          [5,0],  
-          [5,100],  
-          [5,0],  
-          [5,100],  
-          [5,0],  
-          [5,100],  
-          [5,0],  
-          [5,100],  
-          [5,0],  
-          [1,100],  
-          [1,0],  
-          [20,100]  
+          [1 ,100,1  ],  
+          [1 ,  0,2  ],  
+          [1 ,100,1  ],  
+          [1 ,  0,2  ],  
+          [10,100,3  ],  
+          [5 ,  0,3  ],  
+          [5 ,100,1  ],  
+          [5 ,  0,1  ],  
+          [5 ,100,1  ]  ,  
+          [5 ,  0,1  ],  
+          [5 ,100,1  ],  
+          [5 ,  0,1  ]  ,  
+          [5 ,100,1  ],  
+          [5 ,  0,1  ],  
+          [1 ,100,1  ],  
+          [1 ,  0,1  ],  
+          [20,100,1  ]  
         ];
 
     requestAnimationFrame(function loop(time){
@@ -583,14 +587,11 @@ function texture( gl, path ){
           var bar = seqTime / (n4 * 4) | 0;
           if (bar != lastBar) {
             lastBar = bar;
-            console.log(bar, pos);
-            if(scene[bar][1] === 0){
-                pos = seqTime;
-            }
-            ctx.uniform1f(dotsLoc, scene[bar][0]);
-          
+            var current = bar % scene.length;
+            pos = seqTime + scene[current][1];
+            ctx.uniform1f(dotsLoc, scene[current][0]);
+            ctx.uniform1i(fTypeLoc, scene[current][2]);
           }
-          
 
           tIntensity = seqTime - pos;
           ctx.uniform1f(timeLoc, seqTime * 100);

@@ -14,6 +14,8 @@ uniform float u_timeIntensity;
 uniform vec2  u_resolution;
 uniform sampler2D u_sampler;
 
+uniform int u_fType;
+
 const float nbDots       = 30.;
 
 float d1(vec2 o, vec2 p, float t, float t0){
@@ -50,7 +52,9 @@ void main(){
   float color = 0.;
   for(float i = 0.; i < nbDots; i++){
     //position of the point/lights
-    color += d1( vec2( 0.5 , 0.5), p, u_t * (1.5) + 1000.*i + 32000., u_timeIntensity) *  
+    color += (u_fType == 1 ? d1(vec2( 0.5 , 0.5), p, u_t * (1.5) + 1000.*i + 32000., u_timeIntensity) : 
+             u_fType == 2 ? d2(vec2( 0.5 , 0.5), p, u_t * (1.5) + 1000.*i + 32000.) : 
+             d4(vec2( 0.5 , 0.5), p, u_t * (1.5) + 1000.*i + 32000., u_timeIntensity) ) *  
       // intensity of the glow
       //(cos(u_t/400.0) +6.0)/256.0 *
       ( 0.01 + ( 1. / (100. * u_timeIntensity)) ) *

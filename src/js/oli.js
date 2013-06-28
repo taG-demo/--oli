@@ -65,6 +65,7 @@ function texture( gl, path ){
         stepLoc   = ctx.getUniformLocation(program, "u_step"),
         resLoc    = ctx.getUniformLocation(program, "u_resolution"),
         timeLoc   = ctx.getUniformLocation(program, "u_t"),
+        fTypeLoc  = ctx.getUniformLocation(program, "u_fType"),
         tIntensLoc= ctx.getUniformLocation(program, "u_timeIntensity"),
         dotsLoc   = ctx.getUniformLocation(program, "u_dotsVisible"),
         REZ       = ctx.uniform2f(resLoc, X, Y);
@@ -95,23 +96,23 @@ function texture( gl, path ){
     var tIntensity = 0,
         pos = 0,
         scene = [
-          [1,100],  
-          [1,0],  
-          [1,100],  
-          [1,0],  
-          [1,100],  
-          [5,0],  
-          [5,100],  
-          [5,0],  
-          [5,100],  
-          [5,0],  
-          [5,100],  
-          [5,0],  
-          [5,100],  
-          [5,0],  
-          [1,100],  
-          [1,0],  
-          [20,100]  
+          [1 ,100,1  ],  
+          [1 ,  0,2  ],  
+          [1 ,100,1  ],  
+          [1 ,  0,2  ],  
+          [10,100,3  ],  
+          [5 ,  0,3  ],  
+          [5 ,100,1  ],  
+          [5 ,  0,1  ],  
+          [5 ,100,1  ]  ,  
+          [5 ,  0,1  ],  
+          [5 ,100,1  ],  
+          [5 ,  0,1  ]  ,  
+          [5 ,100,1  ],  
+          [5 ,  0,1  ],  
+          [1 ,100,1  ],  
+          [1 ,  0,1  ],  
+          [20,100,1  ]  
         ];
 
     requestAnimationFrame(function loop(time){
@@ -119,14 +120,11 @@ function texture( gl, path ){
           var bar = seqTime / (n4 * 4) | 0;
           if (bar != lastBar) {
             lastBar = bar;
-            console.log(bar, pos);
-            if(scene[bar][1] === 0){
-                pos = seqTime;
-            }
-            ctx.uniform1f(dotsLoc, scene[bar][0]);
-          
+            var current = bar % scene.length;
+            pos = seqTime + scene[current][1];
+            ctx.uniform1f(dotsLoc, scene[current][0]);
+            ctx.uniform1i(fTypeLoc, scene[current][2]);
           }
-          
 
           tIntensity = seqTime - pos;
           ctx.uniform1f(timeLoc, seqTime * 100);
