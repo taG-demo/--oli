@@ -11,12 +11,14 @@ module.exports = function(grunt) {
         src: ['src/**/*.js'],
         dest: 'build/<%= pkg.name %>.js'
       }
-    }, 
+    },
 
 
     uglify: {
+
       options: {
-        banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n'
+        banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n',
+        mangle: {toplevel: true}
       },
       build: {
         src: ['build/<%= pkg.name %>.js'],
@@ -29,7 +31,7 @@ module.exports = function(grunt) {
         src:'build/<%= pkg.name %>.js'
       }
     },
-    
+
     watch: {
       assets : {
         files : ['src/**/*.*'],
@@ -57,7 +59,7 @@ module.exports = function(grunt) {
       dist: {                                      // Target
         options: {                                 // Target options
           removeComments: true,
-          collapseWhitespace: true, 
+          collapseWhitespace: true,
           removeOptionalTags : true
         },
         files: {                                   // Dictionary of files
