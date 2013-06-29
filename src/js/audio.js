@@ -1,11 +1,9 @@
- var tempo = 80,
+var tempo = 80,
   n4 = 60 / tempo,
   lastBar = -1,
   bar = 0;
+  actx = window.AudioContext || window.webkitAudioContext;
 
-  //http://youtu.be/qjx2IArwz1Q?t=25m31s
-
-var actx = window.AudioContext || window.webkitAudioContext;
 if (!actx) {
 	throw("No audio.");
 }
@@ -19,25 +17,34 @@ actx = new actx();
       	n32 = n16 / 2,
       	n64 = n32 / 2,
 
-		kickLen = (n4 * 1) * sr,
-		kickBuffer = actx.createBuffer(1, kickLen, sr),
-		kickData = kickBuffer.getChannelData(0),
+		barSampleLength = (n4 * 8) * sr,
 
-		snareLen = (n16 * 1) * sr,
-		snareBuf = actx.createBuffer(1, snareLen, sr),
+		snareBuf = actx.createBuffer(1, n16 * sr, sr),
 		snareData = snareBuf.getChannelData(0),
 
-		delayNode = actx.createDelay(),
-		delayNode2 = actx.createDelay(),
-		delayNode3 = actx.createDelay(),
-		delayGain = actx.createGain();
+		kickBuffer = actx.createBuffer(1, barSampleLength / 8, sr),
+		kickData = kickBuffer.getChannelData(0),
 
-	// Hi-hat delay
-	delayNode.delayTime.value = n16;
-	delayNode2.delayTime.value = n8;
-	delayNode3.delayTime.value = n32 * 0.75;
-	delayGain.gain.value = 0.2;
+		padLBuf = actx.createBuffer(1, barSampleLength, sr),
+		padLData = padLBuf.getChannelData(0),
 
+		padHBuf = actx.createBuffer(1, barSampleLength, sr),
+		padHData = padHBuf.getChannelData(0),
+
+		leadBuf = actx.createBuffer(1, barSampleLength, sr),
+		leadData = leadBuf.getChannelData(0),
+
+		dropLBuf = actx.createBuffer(1, barSampleLength, sr),
+		dropLData = dropLBuf.getChannelData(0),
+
+		dropHBuf = actx.createBuffer(1, barSampleLength, sr),
+		dropHData = dropHBuf.getChannelData(0);
+
+	/*
+
+		Assign all the sample data
+
+	*/
 
 	// Sine wave generator
 	var i, j,
@@ -45,83 +52,224 @@ actx = new actx();
 		freqDrop = (sfreq - 50) / kickData.length;
 	for (i = 0; i < kickData.length; ++i) {
 		kickData[i] = Math.sin(i / (sr / (sfreq * 2 * Math.PI)));
-
 		sfreq -= freqDrop;
 	}
 
 	// Noise generator
 	for (i = 0; i < snareData.length; i++) {
 		snareData[i] = (Math.random() * 2 - 1) / 2;
-				//synData[i] *= (1+Math.sin(i*0.5*0.001)*0.6);
-		snareData[i] *= (1+Math.sin(i*0.5*0.001)*0.6);
 	}
-
-	/* Synth */
-	var synLen = (n4 * 8) * sr,
-		synBuf = actx.createBuffer(1, synLen, sr),
-		synBuf2 = actx.createBuffer(1, synLen, sr),
-		synBuf3 = actx.createBuffer(1, synLen, sr),
-		synData = synBuf.getChannelData(0),
-		synData2 = synBuf2.getChannelData(0),
-		synData3 = synBuf3.getChannelData(0),
-
-		dropBuf1 = actx.createBuffer(1, synLen, sr),
-		dropBuf2 = actx.createBuffer(1, synLen, sr),
-		dropData1 = dropBuf1.getChannelData(0),
-		dropData2 = dropBuf2.getChannelData(0);
-
-
 
 	// Square wave generator
 	var synNote = 47,
 		steps = [];
 
+	for (i = 0, j = barSampleLength; i < j; i++) {
 
-	// Magic number...
-		// 115.5 = F4.
-		//   -56 = F3
-		//   -28 = C4 .... -23 = C# ...-18/-19 = D
-		//	  28 = A4
-		//    55 = C5
+		// Pads and drop core note
+		var note = i < j / 2 ? 3.72 : 2.78;
 
-	for (i = 0; i < 16; i++) {
-		steps[i] = (111.5 + ([-111.5, -56, -28, 0, +28, +55][Math.random() * 6 | 0]));
-	}
-	console.log(steps.map(function(n){return n === 0 ? "." : n - 111.5}));
-
-	for (i = 0, j = synData.length; i < j; i++) {
-
-		var xxx = i < j / 2 ? 3.72 : 2.78;
-		// Crazy rollercoaster!
-
-		synData[i] = Math.sin(i / (sr / ((synNote + 0.25) * xxx * Math.PI))) > 0 ? 0.4 : -0.4;
-		synData2[i] = Math.sin(i / (sr / ((synNote - 0.25) * xxx * Math.PI))) > 0 ? 0.4 : -0.4;
-
-		xxx -=  (i / (j /8)) * 0.4;
-		dropData1[i] = Math.sin(i / (sr / ((synNote + 0.25) * xxx * Math.PI))) > 0 ? 0.4 : -0.4;
-		dropData2[i] = Math.sin(i / (sr / ((synNote - 0.25) * xxx * Math.PI))) > 0 ? 0.4 : -0.4;
+		// Square notes
+		padLData[i] = Math.sin(i / (sr / ((synNote + 0.25) * note * Math.PI))) > 0 ? 0.3 : -0.3;
+		padHData[i] = Math.sin(i / (sr / ((synNote - 0.25) * note * Math.PI))) > 0 ? 0.3 : -0.3;
 
 		// VIbrato:
-		synData[i] *= (1+Math.sin(i*0.8*0.001)*0.6);
-		synData2[i] *= (1+Math.sin(i*0.8*0.001)*0.6);
+		padLData[i] *= (1 + Math.sin(i * 0.8 * 0.001) * 0.6);
+		padHData[i] *= (1 + Math.sin(i * 0.8 * 0.001) * 0.6);
 
-		// -28, +28, 55
-		var freq;
-		//step = steps[i / (j / steps.length) | 0];
-		step = 111.5 + [-56, -28, 0, +28, 0, 55, -56, +28, 0, -28, 0, +28, 0, 55, -56, -56][i / (j / 16) | 0];
+		// Crazy rollercoaster dropnote!
+		note -=  (i / (j /8)) * 0.4;
+		dropLData[i] = Math.sin(i / (sr / ((synNote + 0.25) * note * Math.PI))) > 0 ? 0.4 : -0.4;
+		dropHData[i] = Math.sin(i / (sr / ((synNote - 0.25) * note * Math.PI))) > 0 ? 0.4 : -0.4;
 
-		freq = sr / (step * 2 * Math.PI);
-		synData3[i] = (((i % freq) / (freq / 2)) - 1) * 0.06;
-		synData3[i] *= (1+Math.sin(i*0.3*0.001+(Math.PI/4))*0.7);
+		// Set the sawtooth notes: 	115.5 = F4. -56 = F3. -28 = C4 .... -23 = C# ...-18/-19 = D. 28 = A . 55 = C5
+		step = 111.5 + [-56, -28, 0, +28, 0, 55, -56, +28, 0, -28, 0, +28, 0, 55, -56, 28][i / (j / 16) | 0];
+		var freq = sr / (step * 2 * Math.PI);
+		leadData[i] = (((i % freq) / (freq / 2)) - 1) * 0.06;
+		leadData[i] *= 1 + Math.sin(i * 0.3 * 0.001 + (Math.PI / 4)) * 0.7; // Vibrato
 
 	}
 
-	var Env = function (a, d, r) {
+	/*
+
+		Create the nodes
+
+	*/
+
+	var kickNode = createNode(kickBuffer),
+		kickEnv = Env(0.001, 0.08, 0.2),
+
+		snareNode = createNode(snareBuf),
+		snareEnv = Env(0.001, 0.04, 0.13),
+		hatEnv = Env(0.001, 0.01, 0.03),
+
+		padLNode = createNode(padLBuf),
+		padHNode = createNode(padHBuf),
+		padEnv = Env(0.045, 0.5, 0.05),
+
+		leadNode = createNode(leadBuf),
+		leadEnv = Env(n32, n4 + n4, n64),
+
+		dropLNode = createNode(dropLBuf),
+		dropHNode = createNode(dropHBuf),
+		dropEnv = Env(0.045, 0.5, 0.05),
+
+		delayNode = actx.createDelay(),
+		delayNode2 = actx.createDelay(),
+		delayNode3 = actx.createDelay(),
+		delayGain = actx.createGain(),
+
+		gainMaster = actx.createGain(),
+
+		hatFilter = actx.createBiquadFilter(),
+		leadFilter = actx.createBiquadFilter(),
+		padFilter = actx.createBiquadFilter();
+
+
+	/*
+
+		Node settings
+
+	*/
+
+	hatFilter.type = 0;
+	hatFilter.Q.value = 4;
+	hatFilter.frequency.value = 2000;
+
+	leadFilter.type = 0;
+	leadFilter.Q.value = 5;
+	leadFilter.frequency.value = 1700;
+
+	padFilter.type = 0;
+	padFilter.Q.value = 10;
+	padFilter.frequency.value = 700;
+
+
+	delayGain.gain.value = 0.2;
+	delayGain.connect(gainMaster);
+	delayGain.connect(delayNode);
+
+	/*
+
+		Join everything up together
+
+	*/
+	gainMaster.gain.value = 2.0;
+	gainMaster.connect(actx.destination);
+
+	// delay line
+	delayNode.connect(delayNode2);
+	delayNode2.connect(delayGain);
+	delayNode.delayTime.value = n16;
+	delayNode2.delayTime.value = n8;
+	delayNode3.delayTime.value = n32 * 0.75;
+	delayNode3.connect(leadFilter);
+
+
+	kickEnv.inp(kickNode);
+	kickEnv.outp(gainMaster);
+
+	snareEnv.inp(snareNode);
+	snareEnv.outp(hatFilter);
+
+	hatEnv.inp(snareNode);
+	hatEnv.outp(delayNode);
+	hatEnv.outp(hatFilter);
+	hatFilter.connect(gainMaster);
+
+	padEnv.inp(padLNode);
+	padEnv.inp(padHNode);
+
+	dropEnv.inp(dropLNode);
+	dropEnv.inp(dropHNode);
+
+	leadFilter.connect(delayNode);
+	leadFilter.connect(gainMaster);
+
+	leadEnv.inp(leadNode);
+	leadEnv.outp(leadFilter);
+	leadEnv.outp(delayNode3);
+
+	padFilter.connect(gainMaster);
+
+	padEnv.outp(padFilter);
+	dropEnv.outp(padFilter);
+
+	var c = actx.currentTime,
+		beat = [0,0,0,0];
+
+	/*
+
+		Sequence up a song
+
+	*/
+
+	// This many bars...
+	for (var i = 0; i < 24; i++) {
+
+		// Four on the floor
+		for (var j = 0; j < 4; j++) {
+			beat[j] = c + (i * 4 + j) * n4;
+			j % 2 == 1 && kickEnv.fire(c + ((j+1) + i * 4) * n4);
+		}
+
+		// Pad bass
+		if(i > 3) {
+			if (i < 11) {
+				padEnv.fire(c + beat[0]);
+			} else {
+				if (i === 1) {
+					dropNode.start(0);
+					dropNode.start(1);
+				}
+				padEnv.stop(c+ beat[0]);
+				dropEnv.fire(c + beat[0]);
+			}
+		}
+
+		// Pad bass's Wahhhh filter
+		if (i > 11){
+			wah(c + beat[0])
+			wah(c + beat[2]);
+		};
+
+		// Twinkly lead
+		if(i < 11 || i > 19) {
+			leadEnv.fire(c + beat[0] - (n32 * 0.85));
+		} else {
+			leadEnv.stop(beat[0]);
+		}
+
+		// Hats n snare
+		if (i > 3) {
+			snareEnv.fire(beat[1]);
+			if (i < 11 ) {
+				hatEnv.fire(beat[1] + n8 + n16);
+				hatEnv.fire(beat[2] + n4 + n8 + n16);
+			}
+
+			snareEnv.fire(beat[3]);
+			if (i % 2 === 1) {
+				//snareEnv.fire(beat[3] + n16 + n8);
+				snareEnv.fire(beat[3] + n8 + n16);
+			}
+		}
+		// Leading snare
+		i == 3 && snareEnv.fire(beat[3] + n8);
+	}
+
+	/*
+
+		Helpers and classes
+
+	*/
+
+	function Env(a, d, r) {
 		var node = actx.createGain();
 		node.gain.value = 0;
 		return {
 			fire: function (off) {
-				//node.gain.setValueAtTime(0, off);
+				node.gain.setValueAtTime(0, off);
 				node.gain.linearRampToValueAtTime(0, off);
 				node.gain.linearRampToValueAtTime(1, a + off);
 				node.gain.linearRampToValueAtTime(0.3, d + off);
@@ -147,69 +295,8 @@ actx = new actx();
 		return node;
 	}
 
-	var kickNode = createNode(kickBuffer),
-		snareNode = createNode(snareBuf),
-		synNode = createNode(synBuf),
-		synNode2 = createNode(synBuf2),
-		synNode3 = createNode(synBuf3),
-
-		dropNode = createNode(dropBuf1),
-		dropNode2 = createNode(dropBuf2);
-
-
-	// var i = "";
-	// for(var t in actx) {
-	// 	i+= t + ":" + actx[t] + "<Br/>";
-	// }
-	// document.body.innerHTML = i;
-
-	var gainMaster = actx.createGain();
-	gainMaster.gain.value = 2.0;
-
-	var kickEnv = Env(0.001, 0.08, 0.2);
-	kickEnv.inp(kickNode);
-	kickEnv.outp(gainMaster);
-
-	var hihatFilter = actx.createBiquadFilter();
-	hihatFilter.type = 0;
-	hihatFilter.Q.value = 4;
-	hihatFilter.frequency.value = 2000;
-
-	var snareEnv = Env(0.001, 0.04, 0.13);
-	snareEnv.inp(snareNode);
-	snareEnv.outp(hihatFilter);
-
-	var hatEnv = Env(0.001, 0.01, 0.03);
-	hatEnv.inp(snareNode);
-	hatEnv.outp(hihatFilter);
-
-	delayNode.connect(delayNode2);
-	delayNode2.connect(delayGain);
-
-	delayGain.connect(gainMaster);
-	delayGain.connect(delayNode);
-
-	var synEnv = Env(0.045, 0.5, 0.05);
-	synEnv.inp(synNode);
-	synEnv.inp(synNode2);
-
-	var dropEnv = Env(0.045, 0.5, 0.05);
-	dropEnv.inp(dropNode);
-	dropEnv.inp(dropNode2);
-
-
-	var syn2Env = Env(n32, n4 + n4, n64);
-	syn2Env.inp(synNode3);
-
-	var synFilter = actx.createBiquadFilter();
-	synFilter.type = 0;
-	synFilter.Q.value = 10;
-	synFilter.frequency.value = 700;
-
-	var c = actx.currentTime;
-
-	function addWah(off) {
-		var freq = synFilter.frequency;
+	function wah(off) {
+		var freq = padFilter.frequency;
 		var lastBeat = off,
 			low = 200,
 			hi = 2000;
@@ -227,121 +314,6 @@ actx = new actx();
 		freq.linearRampToValueAtTime(low, lastBeat + (n64 * 11));
 		freq.setValueAtTime(hi, lastBeat + (n64 * 12));
 		freq.linearRampToValueAtTime(low, lastBeat + (n64 * 13));
-		// freq.setValueAtTime(700, lastBeat + (n64 * 14));
-		// freq.linearRampToValueAtTime(1100, lastBeat + (n64 * 15));
 	}
-
-	var synGain = actx.createGain();
-	synGain.gain.value = 0.3;
-
-	synEnv.outp(synFilter);
-	dropEnv.outp(synFilter);
-	synFilter.connect(synGain);
-
-	//var melFilter = actx.
-
-
-	var melFilter = actx.createBiquadFilter();
-	melFilter.type = 0;
-	melFilter.Q.value = 5;
-	melFilter.frequency.value = 1700;
-
-
-	// var testvib = actx.createJavaScriptNode(4096 * 4, 1, 1);
-	// var cc = 0,
-	// 	v = 0.5,
-	// 	s = 1.0;
-	// testvib.onaudioprocess = function(ev) {
- //        var inp = ev.inputBuffer.getChannelData(0);
- //        var out = ev.outputBuffer.getChannelData(0);
-
- //        for (var i = 0; i < inp.length; i++) {
- //            out[i] = inp[i] * (1+Math.sin(cc*s*0.001)*v);
- //            cc++;
- //        }
- //    }
-
-	//syn2Env.outp(melFilter);
-	//syn2Env.outp(delayNode3);
-	delayNode3.connect(melFilter);
-	syn2Env.outp(melFilter);
-	//testvib.connect(melFilter);
-	syn2Env.outp(delayNode3);
-
-	melFilter.connect(delayNode);
-	melFilter.connect(gainMaster);
-
-	//synGain.connect(delayNode);
-	synGain.connect(gainMaster);
-
-	hatEnv.outp(delayNode);
-	hihatFilter.connect(gainMaster);
-
-	gainMaster.connect(actx.destination);
-
-
-	var beat = [0,0,0,0];
-	// Sequence up some stuffs
-	for (var i = 0; i < 24; i++) {
-
-		// Four on the floor
-		for (var j = 0; j < 4; j++) {
-			beat[j] = c + (i * 4 + j) * n4;
-			j % 2 == 1 && kickEnv.fire(c + ((j+1) + i * 4) * n4);
-		}
-
-		//Wahhhh filter
-		if (i > 11){
-			addWah(c + beat[0])
-			addWah(c + beat[2]);
-			//addWah(c + beat[3] + n8);
-		};
-
-		// Synth
-		if(i > 3) {
-
-			if (i < 11) {
-				synEnv.fire(c + beat[0]);
-			} else {
-				if (i === 1) {
-					dropNode.start(0);
-					dropNode.start(1);
-				}
-				synEnv.stop(c+ beat[0]);
-				dropEnv.fire(c + beat[0]);
-			}
-			// Double pluckin'
-			if (i > 11){
-				//synEnv.fire(c + beat[2]);
-				//synEnv.fire(c + beat[3] + n8);
-			}
-		}
-
-		// Twinkly
-		if(i < 11 || i > 19) {
-			syn2Env.fire(c + beat[0] - (n32 * 0.85));
-		} else {
-			syn2Env.stop(beat[0]);
-		}
-
-
-		// Hats n snare
-		if (i > 3) {
-			//hatEnv.fire(beat[0]);
-
-			snareEnv.fire(beat[1]);
-			hatEnv.fire(beat[1] + n8 + n16);
-
-			hatEnv.fire(beat[2] + n4 + n8 + n16);
-
-			snareEnv.fire(beat[3]);
-			if (i % 2 === 1) {
-				//snareEnv.fire(beat[3] + n16 + n8);
-				snareEnv.fire(beat[3] + n8 + n16);
-			}
-		}
-		i == 3 && snareEnv.fire(beat[3] + n8);
-	}
-
 
 }());
