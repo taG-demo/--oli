@@ -25,7 +25,6 @@ var sr = actx.sampleRate,
   	n64 = n32 / 2,
   	n2b = n4 * 8,
 
-
 	// TODO: remove these helpful constants!
 	snare = 0,
 	kick = 1,
@@ -42,7 +41,6 @@ var sr = actx.sampleRate,
 		return [buf, buf.getChannelData(0)];
 
 	});
-  	console.log(n4, n8, n16, n32, n64);
 
 /*
 

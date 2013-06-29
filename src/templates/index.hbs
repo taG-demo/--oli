@@ -1,55 +1,29 @@
 <html>
 <head>
 <style type="text/css">
-*{margin:0; padding:0; font-family:monospace;}
-body{position:relative; font-size: 60pt;}
-#cnt {
-    width: 33%;
-    position: absolute;
-    top: 20%; bottom: 0;
-    left: 30%;
-}
+*{margin:0; padding:0; font-family:arial}
+body{position:relative; font-size: 50pt}
 .mq {
-    position: relative;
-    -webkit-animation: mq 5s linear forwards;
-    animation: mq 5s linear forwards;
+    position: absolute;
+    left: 10%;
+    top: 20%;
     color: transparent;
-    text-align: center;
-    text-shadow: 0 0 10px rgba(255,255,255,0.6),
-    	0 0 30px rgba(255,255,255,0.4),
+    text-shadow: 0 0 10px rgba(255,255,255,0.7),
     	0 0 50px rgba(255,255,255,0.3),
     	0 0 180px rgba(255,255,255,0.3);
-}
-
-@-webkit-keyframes mq {
-    0%   { opacity: 0;}
-    10% { opacity: 1; }
-    100% { opacity: 0 }
-    /* we can use text-indent for left-to-right scroll... or just marquee tag! */
-}
-@keyframes mq {
-    0%   { opacity:   0}
-    10% { opacity: 1 }
-    100% { opacity: 0 }
 }
 
 </style>
 </head>
 <body>
 
-<div id="container">
-</div>
+<div id="container"></div>
+<div class="mq"></div>
 
-<div id="cnt">
-    <div class="mq">
-
-    </div>
-</div>
 
 <script id="2d-vertex-shader" type="x-shader/x-vertex">
 {{include 'main.vert'}}
 </script>
-
 <script id="2d-fragment-shader" type="x-shader/x-fragment">
 {{include 'main.min.frag'}}
 </script>
