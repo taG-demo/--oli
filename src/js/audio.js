@@ -2,7 +2,9 @@ var tempo = 80,
   n4 = 60 / tempo,
   lastBar = -1,
   bar = 0;
-  actx = window.AudioContext || window.webkitAudioContext;
+  actx = window.AudioContext || window.webkitAudioContext,
+  _ramp = "linearRampToValueAtTime",
+  _set = "setValueAtTime";
 
 if (!actx) {
 	throw("No audio.");
@@ -16,29 +18,26 @@ actx = new actx();
   		n16 = n8 / 2,
       	n32 = n16 / 2,
       	n64 = n32 / 2,
+      	n2b = n4 * 8,
 
-		barSampleLength = (n4 * 8) * sr,
+		barSampleLength = n2b * sr,
 
-		snareBuf = actx.createBuffer(1, n16 * sr, sr),
-		snareData = snareBuf.getChannelData(0),
+		bufAndData = [n16, n4, n2b, n2b, n2b, n2b, n2b].map(function (len) {
 
-		kickBuffer = actx.createBuffer(1, barSampleLength / 8, sr),
-		kickData = kickBuffer.getChannelData(0),
+			var buf = actx.createBuffer(1, len * sr, sr);
+			return [buf, buf.getChannelData(0)];
 
-		padLBuf = actx.createBuffer(1, barSampleLength, sr),
-		padLData = padLBuf.getChannelData(0),
+		}),
 
-		padHBuf = actx.createBuffer(1, barSampleLength, sr),
-		padHData = padHBuf.getChannelData(0),
-
-		leadBuf = actx.createBuffer(1, barSampleLength, sr),
-		leadData = leadBuf.getChannelData(0),
-
-		dropLBuf = actx.createBuffer(1, barSampleLength, sr),
-		dropLData = dropLBuf.getChannelData(0),
-
-		dropHBuf = actx.createBuffer(1, barSampleLength, sr),
-		dropHData = dropHBuf.getChannelData(0);
+		b = {
+			"snare": 0,
+			"kick": 1,
+			"padL": 2,
+			"padH": 3,
+			"lead": 4,
+			"dropL": 5,
+			"dropH": 6
+		};
 
 	/*
 
@@ -49,15 +48,15 @@ actx = new actx();
 	// Sine wave generator
 	var i, j,
 		sfreq = 70,
-		freqDrop = (sfreq - 50) / kickData.length;
-	for (i = 0; i < kickData.length; ++i) {
-		kickData[i] = Math.sin(i / (sr / (sfreq * 2 * Math.PI)));
+		freqDrop = (sfreq - 50) / bufAndData[b.kick][1].length;
+	for (i = 0; i < bufAndData[b.kick][1].length; ++i) {
+		bufAndData[b.kick][1][i] = Math.sin(i / (sr / (sfreq * 2 * Math.PI)));
 		sfreq -= freqDrop;
 	}
 
 	// Noise generator
-	for (i = 0; i < snareData.length; i++) {
-		snareData[i] = (Math.random() * 2 - 1) / 2;
+	for (i = 0; i < bufAndData[b.snare][1].length; i++) {
+		bufAndData[b.snare][1][i] = (Math.random() * 2 - 1) / 2;
 	}
 
 	// Square wave generator
@@ -70,23 +69,23 @@ actx = new actx();
 		var note = i < j / 2 ? 3.72 : 2.78;
 
 		// Square notes
-		padLData[i] = Math.sin(i / (sr / ((synNote + 0.25) * note * Math.PI))) > 0 ? 0.3 : -0.3;
-		padHData[i] = Math.sin(i / (sr / ((synNote - 0.25) * note * Math.PI))) > 0 ? 0.3 : -0.3;
+		bufAndData[b.padL][1][i] = Math.sin(i / (sr / ((synNote + 0.25) * note * Math.PI))) > 0 ? 0.3 : -0.3;
+		bufAndData[b.padH][1][i] = Math.sin(i / (sr / ((synNote - 0.25) * note * Math.PI))) > 0 ? 0.3 : -0.3;
 
 		// VIbrato:
-		padLData[i] *= (1 + Math.sin(i * 0.8 * 0.001) * 0.6);
-		padHData[i] *= (1 + Math.sin(i * 0.8 * 0.001) * 0.6);
+		bufAndData[b.padL][1][i] *= (1 + Math.sin(i * 0.0007)* 0.7);
+		bufAndData[b.padH][1][i] *= (1 + Math.sin(i * 0.0007) * 0.7);
 
 		// Crazy rollercoaster dropnote!
 		note -=  (i / (j /8)) * 0.4;
-		dropLData[i] = Math.sin(i / (sr / ((synNote + 0.25) * note * Math.PI))) > 0 ? 0.4 : -0.4;
-		dropHData[i] = Math.sin(i / (sr / ((synNote - 0.25) * note * Math.PI))) > 0 ? 0.4 : -0.4;
+		bufAndData[b.dropL][1][i] = Math.sin(i / (sr / ((synNote + 0.25) * note * Math.PI))) > 0 ? 0.4 : -0.4;
+		bufAndData[b.dropH][1][i] = Math.sin(i / (sr / ((synNote - 0.25) * note * Math.PI))) > 0 ? 0.4 : -0.4;
 
 		// Set the sawtooth notes: 	115.5 = F4. -56 = F3. -28 = C4 .... -23 = C# ...-18/-19 = D. 28 = A . 55 = C5
 		step = 111.5 + [-56, -28, 0, +28, 0, 55, -56, +28, 0, -28, 0, +28, 0, 55, -56, 28][i / (j / 16) | 0];
 		var freq = sr / (step * 2 * Math.PI);
-		leadData[i] = (((i % freq) / (freq / 2)) - 1) * 0.06;
-		leadData[i] *= 1 + Math.sin(i * 0.3 * 0.001 + (Math.PI / 4)) * 0.7; // Vibrato
+		bufAndData[b.lead][1][i] = (((i % freq) / (freq / 2)) - 1) * 0.06;
+		bufAndData[b.lead][1][i] *= 1 + Math.sin(i * 0.3 * 0.001 + (Math.PI / 4)) * 0.7; // Vibrato
 
 	}
 
@@ -96,29 +95,29 @@ actx = new actx();
 
 	*/
 
-	var kickNode = createNode(kickBuffer),
+	var kickNode = createNode(b.kick),
 		kickEnv = Env(0.001, 0.08, 0.2),
 
-		snareNode = createNode(snareBuf),
+		snareNode = createNode(b.snare),
 		snareEnv = Env(0.001, 0.04, 0.13),
 		hatEnv = Env(0.001, 0.01, 0.03),
 
-		padLNode = createNode(padLBuf),
-		padHNode = createNode(padHBuf),
+		padLNode = createNode(b.padL),
+		padHNode = createNode(b.padH),
 		padEnv = Env(0.045, 0.5, 0.05),
 
-		leadNode = createNode(leadBuf),
+		leadNode = createNode(b.lead),
 		leadEnv = Env(n32, n4 + n4, n64),
 
-		dropLNode = createNode(dropLBuf),
-		dropHNode = createNode(dropHBuf),
+		dropLNode = createNode(b.dropL),
+		dropHNode = createNode(b.dropH),
 		dropEnv = Env(0.045, 0.5, 0.05),
 
 		delayNode = actx.createDelay(),
 		delayNode2 = actx.createDelay(),
 		delayNode3 = actx.createDelay(),
-		delayGain = actx.createGain(),
 
+		delayGain = actx.createGain(),
 		gainMaster = actx.createGain(),
 
 		hatFilter = actx.createBiquadFilter(),
@@ -144,27 +143,24 @@ actx = new actx();
 	padFilter.Q.value = 10;
 	padFilter.frequency.value = 700;
 
+	delayNode.delayTime.value = n16;
+	delayNode2.delayTime.value = n8;
+	delayNode3.delayTime.value = n32 * 0.75;
 
+	gainMaster.gain.value = 2.0;
 	delayGain.gain.value = 0.2;
-	delayGain.connect(gainMaster);
-	delayGain.connect(delayNode);
 
 	/*
 
 		Join everything up together
 
 	*/
-	gainMaster.gain.value = 2.0;
-	gainMaster.connect(actx.destination);
 
-	// delay line
 	delayNode.connect(delayNode2);
 	delayNode2.connect(delayGain);
-	delayNode.delayTime.value = n16;
-	delayNode2.delayTime.value = n8;
-	delayNode3.delayTime.value = n32 * 0.75;
 	delayNode3.connect(leadFilter);
-
+	delayGain.connect(gainMaster);
+	delayGain.connect(delayNode);
 
 	kickEnv.inp(kickNode);
 	kickEnv.outp(gainMaster);
@@ -194,6 +190,8 @@ actx = new actx();
 
 	padEnv.outp(padFilter);
 	dropEnv.outp(padFilter);
+
+	gainMaster.connect(actx.destination);
 
 	var c = actx.currentTime,
 		beat = [0,0,0,0];
@@ -265,15 +263,16 @@ actx = new actx();
 	*/
 
 	function Env(a, d, r) {
-		var node = actx.createGain();
-		node.gain.value = 0;
+		var node = actx.createGain(),
+			gain = node.gain;
+		gain.value = 0;
 		return {
 			fire: function (off) {
-				node.gain.setValueAtTime(0, off);
-				node.gain.linearRampToValueAtTime(0, off);
-				node.gain.linearRampToValueAtTime(1, a + off);
-				node.gain.linearRampToValueAtTime(0.3, d + off);
-				node.gain.linearRampToValueAtTime(0, r + off);
+				gain[_set](0, off);
+				gain[_ramp](0, off);
+				gain[_ramp](1, a + off);
+				gain[_ramp](0.3, d + off);
+				gain[_ramp](0, r + off);
 			},
 			inp: function(src) {
 				src.connect(node);
@@ -282,14 +281,14 @@ actx = new actx();
  				node.connect(dest);
 			},
 			stop: function(off) {
-				node.gain.setValueAtTime(0, off);
+				gain[_set](0, off);
 			}
 		}
 	};
 
 	function createNode(buffer) {
 		var node = actx.createBufferSource();
-		node.buffer = buffer;
+		node.buffer = bufAndData[buffer][0];
 		node.loop = true;
 		node.start(0);
 		return node;
@@ -297,23 +296,13 @@ actx = new actx();
 
 	function wah(off) {
 		var freq = padFilter.frequency;
-		var lastBeat = off,
-			low = 200,
-			hi = 2000;
-		freq.setValueAtTime(hi, lastBeat);
-		freq.linearRampToValueAtTime(low, lastBeat + (n8 * 1));
-		freq.setValueAtTime(hi, lastBeat + (n8 * 2));
-		freq.linearRampToValueAtTime(low, lastBeat + (n8 * 3));
-		freq.setValueAtTime(hi, lastBeat + (n16 * 4));
-		freq.linearRampToValueAtTime(low, lastBeat + (n8 * 5));
-		freq.setValueAtTime(hi, lastBeat + (n8 * 6));
-		freq.linearRampToValueAtTime(low, lastBeat + (n8 * 7));
-		freq.setValueAtTime(hi, lastBeat + (n64 * 8));
-		freq.linearRampToValueAtTime(low, lastBeat + (n64 * 9));
-		freq.setValueAtTime(hi, lastBeat + (n64 * 10));
-		freq.linearRampToValueAtTime(low, lastBeat + (n64 * 11));
-		freq.setValueAtTime(hi, lastBeat + (n64 * 12));
-		freq.linearRampToValueAtTime(low, lastBeat + (n64 * 13));
+
+		for (var i = 0; i < 14; i+=2) {
+			var tm = i < 8 ? n8 : n64;
+			freq[_set](2000, off + (tm * i));
+			freq[_ramp](200, off + (tm * (i + 1)));
+		}
+
 	}
 
 }());
