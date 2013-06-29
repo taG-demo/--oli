@@ -75,8 +75,8 @@ for (i = 0, j = n2b * sr; i < j; i++) {
 		};
 
 	// Square pad notes
-	ins[padL][1][i] = square(true, 0.25);
-	ins[padH][1][i] = square(false, 0.25);
+	ins[padL][1][i] = square(true, 0.12);
+	ins[padH][1][i] = square(false, 0.11);
 
 	// Pad vibrato:
 	ins[padL][1][i] *= (1 + Math.sin(i * 0.0007)*  0.7);
@@ -111,7 +111,7 @@ var kickNode = createNode(kick),
 
 	padLNode = createNode(padL),
 	padHNode = createNode(padH),
-	padEnv = Env(0.045, 0.5, 0.05),
+	padEnv = Env(0.051, 0.5, 0.05),
 
 	leadNode = createNode(lead),
 	leadEnv = Env(n32, n4 + n4, n64),
@@ -154,7 +154,7 @@ delayNode.delayTime.value = n16;
 delayNode2.delayTime.value = n8;
 delayNode3.delayTime.value = n32 * 0.75;
 
-gainMaster.gain.value = 2.0;
+gainMaster.gain.value = 1.9;
 delayGain.gain.value = 0.2;
 
 /*
@@ -201,7 +201,12 @@ padFilter[_con](gainMaster);
 padEnv[_con](0, padFilter);
 dropEnv[_con](0, padFilter);
 
-gainMaster[_con](actx.destination);
+var comp = actx.createDynamicsCompressor();
+comp.ratio.value = 10;
+gainMaster[_con](comp);
+comp[_con](actx.destination);
+
+//gainMaster[_con](actx.destination);
 
 var c = actx.currentTime,
 	beat = [0,0,0,0];
@@ -213,7 +218,7 @@ var c = actx.currentTime,
 */
 
 // This many bars...
-for (i = 0; i < 28; i++) {
+for (i = 0; i < 32; i++) {
 
 	// Four on the floor
 	for (j = 0; j < 4; j++) {
