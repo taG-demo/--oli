@@ -1,12 +1,5 @@
 precision mediump float;
-
-//uniform vec2  u_center;
-//uniform vec2  u_resolution;
-//uniform float u_radius;
 uniform float u_t;
-
-//indicates the step on which the scene is
-uniform int u_step;
 
 uniform float u_dotsVisible;
 uniform float u_timeIntensity;
@@ -18,13 +11,6 @@ uniform int u_fType;
 uniform int u_doRoto;
 
 const float nbDots       = 30.;
-
-float d1(vec2 o, vec2 p, float t, float t0){
-  float r = sin(t / 12000.)  ;
-  vec2 f = vec2( r * sin(t/1000.)/5. , r * cos(t/1000.)/5. );
-  vec2 z = vec2(2., 2.);
-  return 1. / distance( o + z * f, p) +.3;
-}
 
 float d2(vec2 o, vec2 p, float t){
   float r = 1.; //sin(t / 12000.)  ;
@@ -60,25 +46,13 @@ void main(){
   float color = 0.;
   vec2 o = vec2( 0.5 , 0.5);
   for(float i = 0.; i < nbDots; i++){
-    //position of the point/lights
-    color += (u_fType == 1 ? d1(o, p, u_t * (1.5) + 1000.*i + 32000., u_timeIntensity) : 
-              u_fType == 2 ? d2(o, p, u_t * (1.5) + 1000.*i + 32000.) : 
+    color += (u_fType == 2 ? d2(o, p, u_t * (1.5) + 1000.*i + 32000.) : 
               u_fType == 3 ? d3(o, p, u_t * (1.5) + 1000.*i + 32000., i, u_timeIntensity ) : 
               u_fType == 4 ? d4(o, p, u_t * (1.5) + 1000.*i + 32000., u_timeIntensity ) : 
                              d5(o, p, u_t * (1.5) + 1000.*i + 32000.) ) *  
-      // intensity of the glow
-      //(cos(u_t/400.0) +6.0)/256.0 *
       ( 0.01 + ( 1. / (100. * u_timeIntensity)) ) *
-      //are they on? // Add some light over time
       min( ( max(u_dotsVisible, i ) - i  ),1.) ; 
   }
-  //  float d0        = d(vec2(0.1), p, u_t + 1000.);
-  //  float d1        = d(vec2(0.2,0.2), p, u_t * 0.95 + 4000.); //1. / distance( vec2(1) , p)   +4.3;
-  //  float d2        = d(vec2(0.4,0.1), p, u_t * 0.90);//1. / distance( vec2(0,1) , p) +4.3;
-  //  float d3        = d(vec2(.3,.3), p, u_t * 1.1);
-  //  float color      = dot( vec4(d1,d2,d3,d0), vec4( (cos(u_t/400.0) +6.0)/256.0 ) ) ;
-
-
   vec3 c = vec3(1.0, 1.0, 1.) * color ;
   for(float n = 0.; n < 5.; n++){
     float decal = 0.2 * n;
@@ -99,9 +73,7 @@ void main(){
 
     vec2 cDamier = clamp( cos(p*1000.)*10. , 0.2, .21) ;
     float dam = (cDamier.x + cDamier.y);
-    if( u_doRoto == 1 
-//          && mod(u_t, 300.) < 100. * cos(u_t / 100.) 
-          ){
+    if( u_doRoto == 1 ){
         float th =cos(u_t * .01) * 1.3 ;
         float zoom = ( cos(u_t *.01) * 0.1 + 1.) ;
         float l = (c.x + c.y + c.z)/3.;
@@ -112,5 +84,5 @@ void main(){
         vec2 cDamier = clamp( cos(p*1000.)*10. , 0.2, .21) ;
         c *=  (cDamier.x + cDamier.y);
         gl_FragColor    = vec4(c , 1.0);
-      }
+    }
 }

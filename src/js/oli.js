@@ -1,21 +1,9 @@
-function createShaderFromScriptElement(doc, glCtx, scriptId){
+function createShaderFromScriptElement(doc, glCtx, scriptId, t){
   var shaderElt   = doc.getElementById(scriptId),
       shaderSrc   = shaderElt.text,
-      shaderType  = (function(ctx, t){
-        if(t === "x-shader/x-vertex")
-          return ctx.VERTEX_SHADER;
-        else if(t === "x-shader/x-fragment")
-          return ctx.FRAGMENT_SHADER;
-      })(glCtx, shaderElt.type),
-      shader      = glCtx.createShader(shaderType);
-
+      shader      = glCtx.createShader(t);
   glCtx.shaderSource(shader, shaderSrc);
   glCtx.compileShader(shader);
-
-  if(!glCtx.getShaderParameter(shader, glCtx.COMPILE_STATUS)){
-      throw new Error();
-  }
-
   return shader;
 }
 
@@ -39,8 +27,8 @@ function texture( gl, path ){
 (function(container){
     var canvas  = document.createElement("canvas"),
         ctx     = canvas.getContext("experimental-webgl"),
-        vShader = createShaderFromScriptElement(document, ctx, "2d-vertex-shader"),
-        fShader = createShaderFromScriptElement(document, ctx, "2d-fragment-shader"),
+        vShader = createShaderFromScriptElement(document, ctx, "2d-vertex-shader", ctx.VERTEX_SHADER),
+        fShader = createShaderFromScriptElement(document, ctx, "2d-fragment-shader", ctx.FRAGMENT_SHADER),
         program = ctx.createProgram(),
         X       = window.innerWidth,
         Y       = window.innerHeight,
@@ -61,7 +49,6 @@ function texture( gl, path ){
 
     var posLoc    = ctx.getAttribLocation(program, "a_position"),
         buffer    = ctx.createBuffer(),
-        stepLoc   = ctx.getUniformLocation(program, "u_step"),
         resLoc    = ctx.getUniformLocation(program, "u_resolution"),
         timeLoc   = ctx.getUniformLocation(program, "u_t"),
         fTypeLoc  = ctx.getUniformLocation(program, "u_fType"),
@@ -141,7 +128,6 @@ function texture( gl, path ){
 
           tIntensity = seqTime - pos;
           ctx.uniform1f(timeLoc, seqTime * 100);
-          ctx.uniform1i(stepLoc, Math.floor(time/10000));
           ctx.uniform1f(tIntensLoc, tIntensity);
           ctx.drawArrays(ctx.TRIANGLE_STRIP, 0, 5);
         requestAnimationFrame(loop, container);
