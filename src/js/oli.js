@@ -79,12 +79,16 @@ function texture( gl, path ){
     var tIntensity = 0,
         pos = 0,
         scene = [
-          [1 ,  0,5,0, "Bobylito"],
-          [2 ,  0,5,0, "Mr Speaker"],
-          [4 ,  0,5,0, "present..."],
-          [8 ,  0,5,0, ""],
-          [12,  0,3,0, "A demo"],
-          [12,  0,4,0],
+          [0 ,  0,5,0, ""],
+          [0 ,  0,5,0, "Our awesom group"],
+          [1 ,  0,5,0 ],
+          [0 ,  0,5,0, "presents"],
+          [1 ,  0,5,0 ],
+          [0 ,  0,5,0, "a demo"],
+          [1 ,  0,5,0],
+          [0 ,  0,5,0],
+          [6,  0,3,0, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Oli"],
+          [8,  0,4,0],
           [12,  0,3,0],
           [12,  0,4,0],
           [12,  0,2,0]  ,
@@ -93,16 +97,26 @@ function texture( gl, path ){
           [12,  0,2,0]  ,
           [8 , 10,5,1],  // ROTO
           [4 , 10,5,1],
+          [6 , 10,5,1],
           [2 , 10,5,1],
-          [1 , 10,5,1],
           [12,  0,2,1],
           [12,100,2,1],
-          [12,  0,2,1]  ,
-          [8 , 10,5,1],  // ROTO
-          [4 , 10,5,1],
-          [2 , 10,5,1],
-          [1 , 10,5,1],
-          [10, 10,5,1]
+          [12,  0,2,1] ,
+          [4 , 0,5,1],
+          [8 , 0,5,0],
+          [12 , 0,5,0],
+          [12 , 0,4,0],
+          [12 , 0,3,0],
+          [12 , 10,5,1, "Greets go to...<br>Lorem ipsum dolaris yoman whoop<br/>The Tings and stuff<br>And more</br>And more</br>!"],
+          [10, 10,5,1],
+          [6, 10,5,1],
+          [4, 10,5,1],
+          [0, 10,5,1],
+          [0, 10,5,1],
+          [0, 10,5,1],
+          [0, 10,5,1],
+          [0, 10,5,1, "it is finished now"]
+
         ],
         greetz = document.querySelector(".mq");
 
@@ -112,14 +126,12 @@ function texture( gl, path ){
           var bar = seqTime / (n4 * 4) | 0;
           if (bar != lastBar) {
             lastBar = bar;
-            var current = bar % scene.length;
+            var current = bar;
             pos = seqTime + scene[current][1];
             ctx.uniform1f(dotsLoc, scene[current][0]);
             ctx.uniform1i(fTypeLoc, scene[current][2]);
             ctx.uniform1i(rotoLoc, scene[current][3]);
-            if(scene[current][4]) {
-              greetz.innerHTML = scene[current][4];
-            }
+            greetz.innerHTML = scene[current][4] || " ";
           }
 
           tIntensity = seqTime - pos;
@@ -128,6 +140,10 @@ function texture( gl, path ){
           ctx.drawArrays(ctx.TRIANGLE_STRIP, 0, 5);
 
           greetz.style.opacity = 1 - (seqTime / (n4 * 4)) % 1;
+          // Optional flasshhh! Kill if we need bytes
+          if (tIntensity < 0.1) {
+            greetz.style.left = (((Math.random() * 28) | 0) + 10) + "px";
+          }
 
         requestAnimationFrame(loop, container);
     }, container);

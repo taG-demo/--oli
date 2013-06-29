@@ -53,7 +53,7 @@ var i, j,
 	sfreq = 70,
 	freqDrop = (sfreq - 50) / ins[kick][1].length;
 for (i = 0; i < ins[kick][1].length; ++i) {
-	ins[kick][1][i] = Math.sin(i / (sr / (sfreq * 2 * Math.PI)));
+	ins[kick][1][i] = Math.sin(i / (sr / (sfreq * 2 * Math.PI))) * 0.6;
 	sfreq -= freqDrop;
 }
 
@@ -75,8 +75,8 @@ for (i = 0, j = n2b * sr; i < j; i++) {
 		};
 
 	// Square pad notes
-	ins[padL][1][i] = square(true, 0.3);
-	ins[padH][1][i] = square(false, 0.3);
+	ins[padL][1][i] = square(true, 0.25);
+	ins[padH][1][i] = square(false, 0.25);
 
 	// Pad vibrato:
 	ins[padL][1][i] *= (1 + Math.sin(i * 0.0007)*  0.7);
@@ -84,8 +84,8 @@ for (i = 0, j = n2b * sr; i < j; i++) {
 
 	// Crazy rollercoaster dropnote!
 	note -=  (i / (j / 8)) * 0.4;
-	ins[dropL][1][i] = square(true, 0.4);
-	ins[dropH][1][i] = square(false, 0.4);
+	ins[dropL][1][i] = square(true, 0.3);
+	ins[dropH][1][i] = square(false, 0.3);
 
 	// Set the sawtooth notes: 	115.5 = F4. -56 = F3. -28 = C4 .... -23 = C# ...-18/-19 = D. 28 = A . 55 = C5
 	step = 111.5 + [-56, -28, 0, +28, 0, 55, -56, +28, 0, -28, 0, +28, 0, 55, -56, 28][i / (j / 16) | 0];
@@ -107,6 +107,7 @@ var kickNode = createNode(kick),
 	snareNode = createNode(snare),
 	snareEnv = Env(0.001, 0.09, 0.33),
 	hatEnv = Env(0.001, 0.01, 0.03),
+	cymEnv = Env(0.1, 0.01, 0.1),
 
 	padLNode = createNode(padL),
 	padHNode = createNode(padH),
@@ -177,6 +178,9 @@ snareEnv[_con](0, percFilter);
 hatEnv[_con](snareNode);
 hatEnv[_con](0, delayNode);
 hatEnv[_con](0, percFilter);
+cymEnv[_con](snareNode);
+cymEnv[_con](0, percFilter);
+
 percFilter[_con](gainMaster);
 
 padEnv[_con](padLNode);
@@ -209,7 +213,7 @@ var c = actx.currentTime,
 */
 
 // This many bars...
-for (i = 0; i < 24; i++) {
+for (i = 0; i < 28; i++) {
 
 	// Four on the floor
 	for (j = 0; j < 4; j++) {
@@ -218,12 +222,12 @@ for (i = 0; i < 24; i++) {
 	}
 
 	// Pad bass
-	if(i > 3) {
-		if (i < 11) {
+	if(i > 7) {
+		if (i < 15) {
 			padEnv.fire(c + beat[0]);
 		} else {
 			// Pad bass's Wahhhh filter
-			if(i > 11) {
+			if(i > 15) {
 				wah(c + beat[0])
 				wah(c + beat[2]);
 			}
@@ -235,16 +239,17 @@ for (i = 0; i < 24; i++) {
 		snareEnv.fire(beat[1]);
 		snareEnv.fire(beat[3]);
 		i % 2 && snareEnv.fire(beat[3] + n8 + n16); // Skippy snare
-		i == 3 && snareEnv.fire(beat[3] + n8); // Leading snare on bar 3 (Can lose this if we need bytes!)
 	}
+		i == 7 && snareEnv.fire(beat[3] + n8); // Leading snare on bar (Can lose this if we need bytes!)
 
 	// Twinkly lead && hihats
-	if(i < 11 || i > 19) {
+	if(i < 15 || i > 23) {
 		leadEnv.fire(c + beat[0] - (n32 * 0.85));
 
 		// Hta
 		hatEnv.fire(beat[1] + n8 + n16);
 		hatEnv.fire(beat[2] + n4 + n8 + n16);
+		//cymEnv.fire(beat[3] + n8 + n16); // Leading snare on bar (Can lose this if we need bytes!)
 
 	} else {
 		leadEnv.stop(beat[0]);
