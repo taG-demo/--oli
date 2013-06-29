@@ -1,7 +1,7 @@
 var tempo = 80,
   n4 = 60 / tempo,
   lastBar = -1,
-  bar = 0;
+  bar = 0,
   actx = window["AudioContext"] || window["webkitAudioContext"],
   _vat = "ValueAtTime",
   _ramp = "linearRampTo" + _vat,
