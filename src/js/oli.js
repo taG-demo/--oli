@@ -13,7 +13,6 @@ function createShaderFromScriptElement(doc, glCtx, scriptId){
   glCtx.compileShader(shader);
 
   if(!glCtx.getShaderParameter(shader, glCtx.COMPILE_STATUS)){
-      console.log("shader " + shader + " failed with error : " + glCtx.getShaderInfoLog(shader));
       throw new Error();
   }
 
@@ -88,16 +87,12 @@ function texture( gl, path ){
 
     ctx.vertexAttribPointer(posLoc, 2, ctx.FLOAT, true, 0, 0);
 
-//    ctx.activeTexture( ctx.TEXTURE0 );
-//    ctx.bindTexture( ctx.TEXTURE_2D, tex1 );
     ctx.uniform1i( ctx.getUniformLocation(program, "u_sampler"), 0);
 
-    //var pause = false;
-    //document.addEventListener("click",function(){ pause = !pause;});
     var tIntensity = 0,
         pos = 0,
         scene = [
-          [1 ,  0,5,1],  
+          [1 ,  0,5,0],  
           [2 ,  0,5,0],  
           [4 ,  0,5,0],  
           [8 ,  0,5,0],  
@@ -113,9 +108,9 @@ function texture( gl, path ){
           [4 , 10,5,1],  
           [2 , 10,5,1],  
           [1 , 10,5,1],  
-          [12,  0,2,0],  
-          [12,100,2,0],  
-          [12,  0,2,0]  ,  
+          [12,  0,2,1],  
+          [12,100,2,1],  
+          [12,  0,2,1]  ,  
           [8 , 10,5,1],  // ROTO
           [4 , 10,5,1],  
           [2 , 10,5,1],  
