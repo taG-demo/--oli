@@ -1,9 +1,9 @@
 <html>
 <head>
 <style type="text/css">
-*{margin:0; padding:0; font-family:monospace; box-sizing: border-box;}
+*{margin:0; padding:0; font-family:monospace;}
 body{position:relative; font-size: 60pt;}
-.cnt {
+#cnt {
     width: 33%;
     position: absolute;
     top: 20%; bottom: 0;
@@ -11,28 +11,25 @@ body{position:relative; font-size: 60pt;}
 }
 .mq {
     position: relative;
-    box-sizing: border-box;
-    -webkit-animation: mq 30s linear infinite;
-    animation: mq 30s linear infinite;
+    -webkit-animation: mq 5s linear forwards;
+    animation: mq 5s linear forwards;
     color: transparent;
     text-align: center;
-    /*color: #111;
-    text-shadow: 0px -1px 4px white, 0px -2px 10px yellow, 0px -10px 20px #ff8000, 0px -18px 40px red;*/
-    text-shadow: 0px 0px 10px rgba(255,255,255,0.6),
-    	0px 0px 30px rgba(255,255,255,0.4),
-    	0px 0px 50px rgba(255,255,255,0.3),
-    	0px 0px 180px rgba(255,255,255,0.3);
+    text-shadow: 0 0 10px rgba(255,255,255,0.6),
+    	0 0 30px rgba(255,255,255,0.4),
+    	0 0 50px rgba(255,255,255,0.3),
+    	0 0 180px rgba(255,255,255,0.3);
 }
 
 @-webkit-keyframes mq {
     0%   { opacity: 0;}
-    50% { opacity: 1; }
+    10% { opacity: 1; }
     100% { opacity: 0 }
     /* we can use text-indent for left-to-right scroll... or just marquee tag! */
 }
 @keyframes mq {
     0%   { opacity:   0}
-    50% { opacity: 1 }
+    10% { opacity: 1 }
     100% { opacity: 0 }
 }
 
@@ -41,6 +38,12 @@ body{position:relative; font-size: 60pt;}
 <body>
 
 <div id="container">
+</div>
+
+<div id="cnt">
+    <div class="mq">
+
+    </div>
 </div>
 
 <script id="2d-vertex-shader" type="x-shader/x-vertex">
@@ -54,11 +57,6 @@ body{position:relative; font-size: 60pt;}
 {{include 'oli.min.js'}}
 </script>
 
-<div class="cnt">
-	<div class="mq">
-		Lorem ipsum dolor sit amet
-	</div>
-</div>
 </body>
 
 </html>

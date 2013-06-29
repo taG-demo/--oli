@@ -38,7 +38,7 @@ function texture( gl, path ){
 
 (function(container){
     var canvas  = document.createElement("canvas"),
-        ctx     = canvas.getContext("experimental-webgl"), 
+        ctx     = canvas.getContext("experimental-webgl"),
         vShader = createShaderFromScriptElement(document, ctx, "2d-vertex-shader"),
         fShader = createShaderFromScriptElement(document, ctx, "2d-fragment-shader"),
         program = ctx.createProgram(),
@@ -92,11 +92,11 @@ function texture( gl, path ){
     var tIntensity = 0,
         pos = 0,
         scene = [
-          [1 ,  0,5,0],  
-          [2 ,  0,5,0],  
-          [4 ,  0,5,0],  
-          [8 ,  0,5,0],  
-          [12,  0,3,0],  
+          [1 ,  0,5,0, "Bobylito"],
+          [2 ,  0,5,0, "Mr Speaker"],
+          [4 ,  0,5,0, "present..."],
+          [8 ,  0,5,0, ""],
+          [12,  0,3,0, "A demo"],
           [12,  0,4,0],  
           [12,  0,3,0],  
           [12,  0,4,0],  
@@ -112,11 +112,13 @@ function texture( gl, path ){
           [12,100,2,1],  
           [12,  0,2,1]  ,  
           [8 , 10,5,1],  // ROTO
-          [4 , 10,5,1],  
-          [2 , 10,5,1],  
-          [1 , 10,5,1],  
-          [10, 10,5,1]  
-        ];
+          [4 , 10,5,1],
+          [2 , 10,5,1],
+          [1 , 10,5,1],
+          [10, 10,5,1]
+        ],
+        greetz = document.querySelector(".mq");
+
 
     requestAnimationFrame(function loop(time){
           var seqTime = actx.currentTime;
@@ -128,6 +130,13 @@ function texture( gl, path ){
             ctx.uniform1f(dotsLoc, scene[current][0]);
             ctx.uniform1i(fTypeLoc, scene[current][2]);
             ctx.uniform1i(rotoLoc, scene[current][3]);
+            if(scene[current][4]) {
+              greetz.classList.remove("mq");
+              greetz.innerHTML = scene[current][4];
+              setTimeout(function(){
+                greetz.classList.add("mq");
+              },0)
+            }
           }
 
           tIntensity = seqTime - pos;
