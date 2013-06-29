@@ -15,6 +15,7 @@ uniform vec2  u_resolution;
 uniform sampler2D u_sampler;
 
 uniform int u_fType;
+uniform int u_doRoto;
 
 const float nbDots       = 30.;
 
@@ -41,8 +42,8 @@ float d3(vec2 o, vec2 p, float t, float i, float t0){
 
 float d4(vec2 o, vec2 p, float t, float t0){
   float r = 1./t0 - 1.;
-  vec2 f = vec2( r * sin(t/100.)/5. , r * cos(t/100.)/5. );
-  vec2 z = vec2(4., 4.);
+  vec2 f = vec2( r * sin(t/1000.)/5. , r * cos(t/1000.)/5. );
+  vec2 z = vec2(3., 3.);
   return 1. / distance( o + z * f, p) +.3;
 }
 
@@ -96,16 +97,20 @@ void main(){
     }
   }
 
-//  if( u_step > 0 && mod(u_t, 300.) < 100. * cos(u_t / 100.) ){
-//      vec2 cDamier = clamp( cos(p*1000.)*10. , 0.2, .21) ;
-//      float th = cos(u_t / 1000.) * 1.3 ;
-//      float zoom = 4. +  ( cos(u_t / 1000.) + 1.) * 5.;
-//      gl_FragColor = vec4( c * (cDamier.x + cDamier.y)  ,  1.9- 
-//            (texture2D( u_sampler, mat2( cos(th), sin(th), -sin(th), cos(th))  * p * vec2(1., -1.)  * zoom + vec2(0, cos(u_t/800.) ) )).x  );
-//  }
-//  else {
+    vec2 cDamier = clamp( cos(p*1000.)*10. , 0.2, .21) ;
+    float dam = (cDamier.x + cDamier.y);
+    if( u_doRoto == 1 
+//          && mod(u_t, 300.) < 100. * cos(u_t / 100.) 
+          ){
+        float th =cos(u_t * .01) * 1.3 ;
+        float zoom = ( cos(u_t *.01) * 0.1 + 1.) ;
+        float l = (c.x + c.y + c.z)/3.;
+        float pt= (texture2D( u_sampler, mat2( cos(th), sin(th), -sin(th), cos(th))  * p * vec2(1., -1.)  * zoom + vec2(0, cos(u_t/800.) ) )).x;
+        gl_FragColor = vec4( c * dam * .1 + .7 * l * pt * dam + (1.-pt) *c* dam, 1. );
+    }
+    else {
         vec2 cDamier = clamp( cos(p*1000.)*10. , 0.2, .21) ;
         c *=  (cDamier.x + cDamier.y);
         gl_FragColor    = vec4(c , 1.0);
-//    }
+      }
 }

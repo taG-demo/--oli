@@ -39,7 +39,7 @@ function texture( gl, path ){
 
 (function(container){
     var canvas  = document.createElement("canvas"),
-        ctx     = canvas.getContext("experimental-webgl"),
+        ctx     = canvas.getContext("experimental-webgl"), 
         vShader = createShaderFromScriptElement(document, ctx, "2d-vertex-shader"),
         fShader = createShaderFromScriptElement(document, ctx, "2d-fragment-shader"),
         program = ctx.createProgram(),
@@ -66,6 +66,7 @@ function texture( gl, path ){
         resLoc    = ctx.getUniformLocation(program, "u_resolution"),
         timeLoc   = ctx.getUniformLocation(program, "u_t"),
         fTypeLoc  = ctx.getUniformLocation(program, "u_fType"),
+        rotoLoc   = ctx.getUniformLocation(program, "u_doRoto"),
         tIntensLoc= ctx.getUniformLocation(program, "u_timeIntensity"),
         dotsLoc   = ctx.getUniformLocation(program, "u_dotsVisible"),
         REZ       = ctx.uniform2f(resLoc, X, Y);
@@ -96,23 +97,30 @@ function texture( gl, path ){
     var tIntensity = 0,
         pos = 0,
         scene = [
-          [1 ,  0,5  ],  
-          [2 ,  0,5  ],  
-          [4 ,  0,5  ],  
-          [8 ,  0,5  ],  
-          [12,  0,5  ],  
-          [12,  0,3  ],  
-          [8 ,  0,4  ],  
-          [8 ,  0,1  ],  
-          [8 ,100,1  ]  ,  
-          [8 ,  0,1  ],  
-          [8 ,100,1  ],  
-          [8 ,  0,1  ]  ,  
-          [8 ,100,1  ],  
-          [8 ,  0,1  ],  
-          [8 ,100,1  ],  
-          [8 ,  0,1  ],  
-          [20,100,1  ]  
+          [1 ,  0,5,1],  
+          [2 ,  0,5,0],  
+          [4 ,  0,5,0],  
+          [8 ,  0,5,0],  
+          [12,  0,3,0],  
+          [12,  0,4,0],  
+          [12,  0,3,0],  
+          [12,  0,4,0],  
+          [12,  0,2,0]  ,  
+          [12,  0,2,0],  
+          [12,100,2,0],  
+          [12,  0,2,0]  ,  
+          [8 , 10,5,1],  // ROTO
+          [4 , 10,5,1],  
+          [2 , 10,5,1],  
+          [1 , 10,5,1],  
+          [12,  0,2,0],  
+          [12,100,2,0],  
+          [12,  0,2,0]  ,  
+          [8 , 10,5,1],  // ROTO
+          [4 , 10,5,1],  
+          [2 , 10,5,1],  
+          [1 , 10,5,1],  
+          [10, 10,5,1]  
         ];
 
     requestAnimationFrame(function loop(time){
@@ -124,6 +132,7 @@ function texture( gl, path ){
             pos = seqTime + scene[current][1];
             ctx.uniform1f(dotsLoc, scene[current][0]);
             ctx.uniform1i(fTypeLoc, scene[current][2]);
+            ctx.uniform1i(rotoLoc, scene[current][3]);
           }
 
           tIntensity = seqTime - pos;
