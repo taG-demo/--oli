@@ -3,18 +3,20 @@ var tempo = 80,
   lastBar = -1,
   bar = 0;
   actx = window["AudioContext"] || window["webkitAudioContext"],
-  _ramp = "linearRampToValueAtTime",
-  _set = "setValueAtTime",
+  _vat = "ValueAtTime",
+  _ramp = "linearRampTo" + _vat,
+  _set = "set" + _vat,
   _con = "connect",
-  _c_filter = "createBiquadFilter",
-  _c_delay = "createDelay",
-  _c_gain = "createGain";
+  _create = "create",
+  _c_filter = _create + "BiquadFilter",
+  _c_delay = _create + "Delay",
+  _c_gain = _create + "Gain",
+  _c_buffer = _create + "Buffer";
 
 if (!actx) {
 	throw("No audio.");
 }
 actx = new actx();
-
 
 var sr = actx.sampleRate,
 		n8 = n4 / 2,
@@ -23,7 +25,6 @@ var sr = actx.sampleRate,
   	n64 = n32 / 2,
   	n2b = n4 * 8,
 
-	barSampleLength = n2b * sr,
 
 	// TODO: remove these helpful constants!
 	snare = 0,
@@ -32,15 +33,16 @@ var sr = actx.sampleRate,
 	padH = 3,
 	lead = 4,
 	dropL = 5,
-	dropH = 6;
+	dropH = 6,
 
 	// These are the lenghts of the 7 instruments
 	ins = [n16, n4, n2b, n2b, n2b, n2b, n2b].map(function (len) {
 
-		var buf = actx.createBuffer(1, len * sr, sr);
+		var buf = actx[_c_buffer](1, len * sr, sr);
 		return [buf, buf.getChannelData(0)];
 
-	}),
+	});
+  	console.log(n4, n8, n16, n32, n64);
 
 /*
 
@@ -65,20 +67,20 @@ for (i = 0; i < ins[snare][1].length; i++) {
 // Square wave generator
 var synNote = 47;
 
-for (i = 0, j = barSampleLength; i < j; i++) {
+// Loop for 2 full bars
+for (i = 0, j = n2b * sr; i < j; i++) {
 
 	// Pads and drop core note
 	var note = i < j / 2 ? 3.72 : 2.78,
 		square = function (isLeft, volume) {
-			return Math.sin(i / (sr / ((synNote + (isLeft ? 0.25 : -0.25) * note * Math.PI))) > 0 ?
-				volume : -volume;
+			return Math.sin(i / (sr / ((synNote + (isLeft ? 0.25 : -0.25)) * note * Math.PI))) > 0 ? volume : -volume;
 		};
 
-	// Square notes
+	// Square pad notes
 	ins[padL][1][i] = square(true, 0.3);
 	ins[padH][1][i] = square(false, 0.3);
 
-	// VIbrato:
+	// Pad vibrato:
 	ins[padL][1][i] *= (1 + Math.sin(i * 0.0007)*  0.7);
 	ins[padH][1][i] *= (1 + Math.sin(i * 0.0007) * 0.7);
 
@@ -222,13 +224,11 @@ for (i = 0; i < 24; i++) {
 		if (i < 11) {
 			padEnv.fire(c + beat[0]);
 		} else {
-			if (i == 1) {
-				dropNode.start(0);
-				dropNode.start(1);
-			}
 			// Pad bass's Wahhhh filter
-			wah(c + beat[0])
-			wah(c + beat[2]);
+			if(i > 11) {
+				wah(c + beat[0])
+				wah(c + beat[2]);
+			}
 			padEnv.stop(c+ beat[0]);
 			dropEnv.fire(c + beat[0]);
 		}
@@ -275,7 +275,7 @@ function Env(a, d, r) {
 		// Dodgy "double use" functions. saves a call to "function" ;)
 		connect: function(src, dst) {
 			src && src[_con](node);
-			dst && node.[_con](dst);
+			dst && node[_con](dst);
 
 		},
 		stop: function(off) {
@@ -285,7 +285,7 @@ function Env(a, d, r) {
 };
 
 function createNode(buffer) {
-	var node = actx.createBufferSource();
+	var node = actx[_c_buffer + "Source"]();
 	node.buffer = ins[buffer][0];
 	node.loop = true;
 	node.start(0);
