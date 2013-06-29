@@ -2,7 +2,7 @@ var tempo = 80,
   n4 = 60 / tempo,
   lastBar = -1,
   bar = 0;
-  actx = window.AudioContext || window.webkitAudioContext,
+  actx = window["AudioContext"] || window["webkitAudioContext"],
   _ramp = "linearRampToValueAtTime",
   _set = "setValueAtTime",
   _con = "connect",
@@ -25,13 +25,6 @@ var sr = actx.sampleRate,
 
 	barSampleLength = n2b * sr,
 
-	bufAndData = [n16, n4, n2b, n2b, n2b, n2b, n2b].map(function (len) {
-
-		var buf = actx.createBuffer(1, len * sr, sr);
-		return [buf, buf.getChannelData(0)];
-
-	}),
-
 	// TODO: remove these helpful constants!
 	snare = 0,
 	kick = 1,
@@ -40,6 +33,14 @@ var sr = actx.sampleRate,
 	lead = 4,
 	dropL = 5,
 	dropH = 6;
+
+	// These are the lenghts of the 7 instruments
+	ins = [n16, n4, n2b, n2b, n2b, n2b, n2b].map(function (len) {
+
+		var buf = actx.createBuffer(1, len * sr, sr);
+		return [buf, buf.getChannelData(0)];
+
+	}),
 
 /*
 
@@ -50,15 +51,15 @@ var sr = actx.sampleRate,
 // Sine wave generator
 var i, j,
 	sfreq = 70,
-	freqDrop = (sfreq - 50) / bufAndData[kick][1].length;
-for (i = 0; i < bufAndData[kick][1].length; ++i) {
-	bufAndData[kick][1][i] = Math.sin(i / (sr / (sfreq * 2 * Math.PI)));
+	freqDrop = (sfreq - 50) / ins[kick][1].length;
+for (i = 0; i < ins[kick][1].length; ++i) {
+	ins[kick][1][i] = Math.sin(i / (sr / (sfreq * 2 * Math.PI)));
 	sfreq -= freqDrop;
 }
 
 // Noise generator
-for (i = 0; i < bufAndData[snare][1].length; i++) {
-	bufAndData[snare][1][i] = (Math.random() * 2 - 1) / 2;
+for (i = 0; i < ins[snare][1].length; i++) {
+	ins[snare][1][i] = (Math.random() * 2 - 1) / 2;
 }
 
 // Square wave generator
@@ -67,26 +68,30 @@ var synNote = 47;
 for (i = 0, j = barSampleLength; i < j; i++) {
 
 	// Pads and drop core note
-	var note = i < j / 2 ? 3.72 : 2.78;
+	var note = i < j / 2 ? 3.72 : 2.78,
+		square = function (isLeft, volume) {
+			return Math.sin(i / (sr / ((synNote + (isLeft ? 0.25 : -0.25) * note * Math.PI))) > 0 ?
+				volume : -volume;
+		};
 
 	// Square notes
-	bufAndData[padL][1][i] = Math.sin(i / (sr / ((synNote + 0.25) * note * Math.PI))) > 0 ? 0.3 : -0.3;
-	bufAndData[padH][1][i] = Math.sin(i / (sr / ((synNote - 0.25) * note * Math.PI))) > 0 ? 0.3 : -0.3;
+	ins[padL][1][i] = square(true, 0.3);
+	ins[padH][1][i] = square(false, 0.3);
 
 	// VIbrato:
-	bufAndData[padL][1][i] *= (1 + Math.sin(i * 0.0007)* 0.7);
-	bufAndData[padH][1][i] *= (1 + Math.sin(i * 0.0007) * 0.7);
+	ins[padL][1][i] *= (1 + Math.sin(i * 0.0007)*  0.7);
+	ins[padH][1][i] *= (1 + Math.sin(i * 0.0007) * 0.7);
 
 	// Crazy rollercoaster dropnote!
-	note -=  (i / (j /8)) * 0.4;
-	bufAndData[dropL][1][i] = Math.sin(i / (sr / ((synNote + 0.25) * note * Math.PI))) > 0 ? 0.4 : -0.4;
-	bufAndData[dropH][1][i] = Math.sin(i / (sr / ((synNote - 0.25) * note * Math.PI))) > 0 ? 0.4 : -0.4;
+	note -=  (i / (j / 8)) * 0.4;
+	ins[dropL][1][i] = square(true, 0.4);
+	ins[dropH][1][i] = square(false, 0.4);
 
 	// Set the sawtooth notes: 	115.5 = F4. -56 = F3. -28 = C4 .... -23 = C# ...-18/-19 = D. 28 = A . 55 = C5
 	step = 111.5 + [-56, -28, 0, +28, 0, 55, -56, +28, 0, -28, 0, +28, 0, 55, -56, 28][i / (j / 16) | 0];
 	var freq = sr / (step * 2 * Math.PI);
-	bufAndData[lead][1][i] = (((i % freq) / (freq / 2)) - 1) * 0.06;
-	bufAndData[lead][1][i] *= 1 + Math.sin(i * 0.3 * 0.001 + (Math.PI / 4)) * 0.7; // Vibrato
+	ins[lead][1][i] = (((i % freq) / (freq / 2)) - 1) * 0.06;
+	ins[lead][1][i] *= 1 + Math.sin(i * 0.0003 + (Math.PI / 4)) * 0.7; // Vibrato
 
 }
 
@@ -217,44 +222,36 @@ for (i = 0; i < 24; i++) {
 		if (i < 11) {
 			padEnv.fire(c + beat[0]);
 		} else {
-			if (i === 1) {
+			if (i == 1) {
 				dropNode.start(0);
 				dropNode.start(1);
 			}
+			// Pad bass's Wahhhh filter
+			wah(c + beat[0])
+			wah(c + beat[2]);
 			padEnv.stop(c+ beat[0]);
 			dropEnv.fire(c + beat[0]);
 		}
+
+		// Hats n snare
+		snareEnv.fire(beat[1]);
+		snareEnv.fire(beat[3]);
+		i % 2 && snareEnv.fire(beat[3] + n8 + n16); // Skippy snare
+		i == 3 && snareEnv.fire(beat[3] + n8); // Leading snare on bar 3 (Can lose this if we need bytes!)
 	}
 
-	// Pad bass's Wahhhh filter
-	if (i > 11){
-		wah(c + beat[0])
-		wah(c + beat[2]);
-	};
-
-	// Twinkly lead
+	// Twinkly lead && hihats
 	if(i < 11 || i > 19) {
 		leadEnv.fire(c + beat[0] - (n32 * 0.85));
+
+		// Hta
+		hatEnv.fire(beat[1] + n8 + n16);
+		hatEnv.fire(beat[2] + n4 + n8 + n16);
+
 	} else {
 		leadEnv.stop(beat[0]);
 	}
 
-	// Hats n snare
-	if (i > 3) {
-		snareEnv.fire(beat[1]);
-		if (i < 11 ) {
-			hatEnv.fire(beat[1] + n8 + n16);
-			hatEnv.fire(beat[2] + n4 + n8 + n16);
-		}
-
-		snareEnv.fire(beat[3]);
-		if (i % 2 === 1) {
-			//snareEnv.fire(beat[3] + n16 + n8);
-			snareEnv.fire(beat[3] + n8 + n16);
-		}
-	}
-	// Leading snare
-	i == 3 && snareEnv.fire(beat[3] + n8);
 }
 
 /*
@@ -277,8 +274,8 @@ function Env(a, d, r) {
 		},
 		// Dodgy "double use" functions. saves a call to "function" ;)
 		connect: function(src, dst) {
-			src && src.connect(node);
-			dst && node.connect(dst);
+			src && src[_con](node);
+			dst && node.[_con](dst);
 
 		},
 		stop: function(off) {
@@ -289,7 +286,7 @@ function Env(a, d, r) {
 
 function createNode(buffer) {
 	var node = actx.createBufferSource();
-	node.buffer = bufAndData[buffer][0];
+	node.buffer = ins[buffer][0];
 	node.loop = true;
 	node.start(0);
 	return node;
