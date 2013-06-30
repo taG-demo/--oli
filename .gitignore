@@ -3,5 +3,4 @@ build
 *.swp
 dest
 index.min.html
-index.html
 
